@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -81,6 +81,30 @@ const blogData = [
     }
 ];
 
+// --- HOOK: reveal on scroll ---
+function useReveal(options = {}) {
+    const ref = useRef(null);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisible(true);
+                    observer.unobserve(el);
+                }
+            },
+            { threshold: 0.1, ...options },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    return [ref, visible] as const;
+}
+
 export default function Blog() {
     const [activeCategory, setActiveCategory] = useState("Semua Berita");
 
@@ -89,24 +113,48 @@ export default function Blog() {
         ? blogData 
         : blogData.filter(blog => blog.kategori === activeCategory);
 
+    // --- ANIMATION STATE & REFS ---
+    const [heroLoaded, setHeroLoaded] = useState(false);
+    const [filterRef, filterVisible] = useReveal();
+    const [gridRef, gridVisible] = useReveal();
+
+    useEffect(() => {
+        const t = setTimeout(() => setHeroLoaded(true), 100);
+        return () => clearTimeout(t);
+    }, []);
+
     return (
-        <div className="min-h-screen bg-[#f7ffda] font-sans text-gray-800">
+        <div className="min-h-screen bg-[#f7ffda] font-sans text-gray-800 overflow-hidden">
             <Head title="Blog & Publikasi - Loka Berdaya Amerta" />
+
+            {/* GLOBAL KEYFRAMES UNTUK ANIMASI */}
+            <style>{`
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(40px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-up { animation: fadeUp 0.8s cubic-bezier(.22,.61,.36,1) both; }
+                .delay-100 { animation-delay: .1s; }
+                .delay-200 { animation-delay: .2s; }
+                .delay-300 { animation-delay: .3s; }
+            `}</style>
 
             {/* 1. NAVBAR */}
             <Navbar />
 
             {/* 2. HEADER SECTION */}
             <section className="pt-32 pb-12 text-center container mx-auto px-6 md:px-12">
-                <h1 className="text-4xl md:text-5xl font-bold text-[#4b552a] mb-4">Blog & Publikasi</h1>
-                <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                <h1 className={`text-4xl md:text-5xl font-bold text-[#4b552a] mb-4 ${heroLoaded ? "animate-fade-up" : "opacity-0"}`}>
+                    Blog & Publikasi
+                </h1>
+                <p className={`text-lg text-gray-600 max-w-2xl mx-auto ${heroLoaded ? "animate-fade-up delay-100" : "opacity-0"}`}>
                     Ikuti perkembangan terbaru, kisah inspiratif, dan kabar terbaru dari program pemberdayaan Loka Berdaya Amerta.
                 </p>
             </section>
 
             {/* 3. FILTER KATEGORI */}
-            <section className="container mx-auto px-6 md:px-12 mb-12">
-                <div className="flex flex-wrap justify-center gap-3">
+            <section ref={filterRef} className="container mx-auto px-6 md:px-12 mb-12">
+                <div className={`flex flex-wrap justify-center gap-3 ${filterVisible ? "animate-fade-up" : "opacity-0"}`}>
                     {categories.map((cat) => (
                         <button
                             key={cat}
@@ -124,13 +172,19 @@ export default function Blog() {
             </section>
 
             {/* 4. GRID BLOG */}
-            <section className="container mx-auto px-6 md:px-12 pb-24">
+            <section ref={gridRef} className="container mx-auto px-6 md:px-12 pb-24 min-h-[400px]">
                 {filteredBlog.length === 0 ? (
                     <div className="text-center text-gray-500 py-10">Belum ada berita untuk kategori ini.</div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredBlog.map((blog) => (
-                            <div key={blog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition duration-300 group">
+                        {filteredBlog.map((blog, index) => (
+                            <div 
+                                key={blog.id} 
+                                className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group ${gridVisible ? "animate-fade-up" : "opacity-0"}`}
+                                style={{ 
+                                    animationDelay: gridVisible ? `${index * 0.1}s` : '0s' 
+                                }}
+                            >
                                 
                                 {/* Gambar Cover */}
                                 <div className="h-56 w-full overflow-hidden relative">
@@ -197,7 +251,7 @@ export default function Blog() {
                 )}
                 
                 {/* Pagination Placeholder */}
-                <div className="flex justify-center mt-16">
+                <div className={`flex justify-center mt-16 ${gridVisible ? "animate-fade-up delay-300" : "opacity-0"}`}>
                     <div className="flex gap-2">
                         <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#4b552a] text-white font-bold cursor-pointer">1</button>
                     </div>

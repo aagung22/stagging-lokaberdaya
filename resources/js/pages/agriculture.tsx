@@ -1,8 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Users, Building2, Wheat, X } from 'lucide-react';
+
+// --- HOOK: reveal on scroll ---
+function useReveal(options = {}) {
+    const ref = useRef(null);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisible(true);
+                    observer.unobserve(el);
+                }
+            },
+            { threshold: 0.1, ...options },
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+
+    return [ref, visible] as const;
+}
 
 // Data dummy untuk 9 kota/kegiatan
 const kegiatanData = [
@@ -145,9 +169,44 @@ export default function Agriculture() {
         setSelectedKegiatan(null);
     };
 
+    // --- ANIMATION STATE & REFS ---
+    const [heroLoaded, setHeroLoaded] = useState(false);
+    const [statsRef, statsVisible] = useReveal();
+    const [headerRef, headerVisible] = useReveal();
+    const [gridRef, gridVisible] = useReveal();
+
+    useEffect(() => {
+        const t = setTimeout(() => setHeroLoaded(true), 100);
+        return () => clearTimeout(t);
+    }, []);
+
     return (
         <div className="min-h-screen bg-[#f7ffda] font-sans text-gray-800 overflow-hidden relative">
             <Head title="Program Agriculture - Loka Berdaya Amerta" />
+
+            {/* GLOBAL KEYFRAMES UNTUK ANIMASI */}
+            <style>{`
+                @keyframes fadeUp {
+                    from { opacity: 0; transform: translateY(40px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes slideInLeft {
+                    from { opacity: 0; transform: translateX(-60px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes slideInRight {
+                    from { opacity: 0; transform: translateX(60px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                .animate-fade-up { animation: fadeUp 0.8s cubic-bezier(.22,.61,.36,1) both; }
+                .animate-slide-left { animation: slideInLeft 1s cubic-bezier(.22,.61,.36,1) both; }
+                .animate-slide-right { animation: slideInRight 1s cubic-bezier(.22,.61,.36,1) both; }
+                .delay-100 { animation-delay: .1s; }
+                .delay-200 { animation-delay: .2s; }
+                .delay-300 { animation-delay: .3s; }
+                .delay-400 { animation-delay: .4s; }
+                .delay-500 { animation-delay: .5s; }
+            `}</style>
 
             {/* 1. NAVBAR */}
             <Navbar />
@@ -156,7 +215,8 @@ export default function Agriculture() {
             <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 bg-[#f7ffda]">
                 <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col md:flex-row items-center gap-12 lg:gap-20">
                     
-                    <div className="w-full md:w-1/2 relative">
+                    {/* KIRI: Gambar Besar (Animasi Slide Right / Masuk dari Kanan) */}
+                    <div className={`w-full md:w-1/2 relative ${heroLoaded ? "animate-slide-right" : "opacity-0"}`}>
                         <img 
                             src="/images/agriculture.webp"
                             alt="Program Pertanian" 
@@ -164,27 +224,30 @@ export default function Agriculture() {
                         />
                     </div>
 
-                    <div className="w-full md:w-1/2 flex flex-col justify-center">
+                    {/* KANAN: Teks Penjelasan (Animasi Slide Left / Masuk dari Kiri) */}
+                    <div className={`w-full md:w-1/2 flex flex-col justify-center ${heroLoaded ? "animate-slide-left" : "opacity-0"}`}>
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-8">
                             Program Agriculture<br className="hidden md:block"/> (Pertanian)
                         </h1>
                         
                         <div className="space-y-5 text-gray-600 leading-relaxed text-justify md:text-left">
                             <p>
-                                Program Pertanian berfokus pada penguatan ketahanan pangan dan kemandirian petani melalui pengelolaan usaha tani yang berkelanjutan. Program ini mendorong peningkatan produksi sekaligus memastikan hasil panen dapat terserap secara optimal.                            </p>
+                                Program Pertanian berfokus pada penguatan ketahanan pangan dan kemandirian petani melalui pengelolaan usaha tani yang berkelanjutan. Program ini mendorong peningkatan produksi sekaligus memastikan hasil panen dapat terserap secara optimal.                            
+                            </p>
                             <p>
                                 Melalui pendampingan, penguatan kelembagaan, serta pembukaan akses pasar yang lebih luas, petani didorong untuk tidak lagi bergantung pada tengkulak. Dengan rantai distribusi yang lebih adil dan efisien, petani memperoleh harga jual yang lebih stabil dan menguntungkan.
                             </p>
                             <p>
-                                Dengan demikian, program ini tidak hanya meningkatkan produktivitas, tetapi juga memperkuat posisi tawar petani, menciptakan kemandirian ekonomi, serta mendukung terwujudnya ketahanan pangan di tingkat lokal.                            </p>
+                                Dengan demikian, program ini tidak hanya meningkatkan produktivitas, tetapi juga memperkuat posisi tawar petani, menciptakan kemandirian ekonomi, serta mendukung terwujudnya ketahanan pangan di tingkat lokal.                            
+                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* 3. STATS BAR */}
-            <div className="container mx-auto px-6 md:px-12 relative z-20 -mt-20 md:-mt-24">
-                <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border border-gray-100">
+            {/* 3. STATS BAR (Animasi Fade Up dengan jeda) */}
+            <div ref={statsRef} className="container mx-auto px-6 md:px-12 relative z-20 -mt-20 md:-mt-24">
+                <div className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border border-gray-100 ${statsVisible ? "animate-fade-up delay-200" : "opacity-0"}`}>
                     
                     <div className="flex items-start gap-4 w-full md:w-1/3">
                         <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
@@ -225,14 +288,23 @@ export default function Agriculture() {
 
             {/* 4. KEGIATAN KAMI SECTION */}
             <section className="container mx-auto px-6 md:px-12 py-24 mt-12">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-4xl font-bold text-[#4b552a]">Kegiatan Kami</h2>
+                {/* Header dengan Animasi */}
+                <div ref={headerRef} className="text-center mb-16">
+                    <h2 className={`text-3xl md:text-4xl font-bold text-[#4b552a] ${headerVisible ? "animate-fade-up" : "opacity-0"}`}>
+                        Kegiatan Kami
+                    </h2>
                 </div>
 
-                {/* Grid Card Kegiatan */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {kegiatanData.map((item) => (
-                        <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-lg transition duration-300">
+                {/* Grid Card Kegiatan dengan Staggered Animation */}
+                <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {kegiatanData.map((item, index) => (
+                        <div 
+                            key={item.id} 
+                            className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-lg transition-all duration-300 ${gridVisible ? "animate-fade-up" : "opacity-0"}`}
+                            style={{ 
+                                animationDelay: gridVisible ? `${index * 0.1}s` : '0s' 
+                            }}
+                        >
                             
                             <div className="h-48 w-full overflow-hidden">
                                 <img 
@@ -247,13 +319,12 @@ export default function Agriculture() {
                                 
                                 <div className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
                                     <ul className="list-disc pl-4 space-y-2 marker:text-[#4b552a]">
-                                        {item.deskripsi.map((desc, index) => (
-                                            <li key={index}>{desc}</li>
+                                        {item.deskripsi.map((desc, i) => (
+                                            <li key={i}>{desc}</li>
                                         ))}
                                     </ul>
                                 </div>
 
-                                {/* MENAMBAHKAN cursor-pointer DI SINI */}
                                 <button 
                                     onClick={() => handleOpenModal(item)}
                                     className="w-full bg-[#4b552a] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a4220] transition mt-auto cursor-pointer"
@@ -278,7 +349,6 @@ export default function Agriculture() {
                                 Program Pertanian di {selectedKegiatan.kota}
                             </h3>
                             
-                            {/* MENAMBAHKAN cursor-pointer DI SINI */}
                             <button 
                                 onClick={handleCloseModal}
                                 className="p-2 bg-white rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition shadow-sm cursor-pointer"
@@ -294,8 +364,6 @@ export default function Agriculture() {
 
                         {/* Footer Modal */}
                         <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50">
-                            
-                            {/* MENAMBAHKAN cursor-pointer DI SINI */}
                             <button 
                                 onClick={handleCloseModal}
                                 className="bg-[#4b552a] text-white px-8 py-2.5 rounded-lg font-medium hover:bg-[#3a4220] transition cursor-pointer"

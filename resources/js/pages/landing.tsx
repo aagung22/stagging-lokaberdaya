@@ -14,9 +14,9 @@ import {
     ArrowRight,
 } from "lucide-react";
 
-// --- HOOK: reveal on scroll ---
-function useReveal(options = {}) {
-    const ref = useRef(null);
+// --- HOOK: reveal on scroll (Dibuat Generic agar bisa dipakai di div/span) ---
+function useReveal<T extends HTMLElement = HTMLDivElement>(options = {}) {
+    const ref = useRef<T>(null);
     const [visible, setVisible] = useState(false);
 
     useEffect(() => {
@@ -35,18 +35,18 @@ function useReveal(options = {}) {
         return () => observer.disconnect();
     }, []);
 
-    return [ref, visible];
+    return [ref, visible] as const;
 }
 
 // --- KOMPONEN: animated counter ---
-function Counter({ end, duration = 1500 }) {
+function Counter({ end, duration = 1500 }: { end: number, duration?: number }) {
     const [value, setValue] = useState(0);
-    const [ref, visible] = useReveal();
+    const [ref, visible] = useReveal<HTMLSpanElement>();
 
     useEffect(() => {
         if (!visible) return;
-        let start = null;
-        const step = (ts) => {
+        let start: number | null = null;
+        const step = (ts: number) => {
             if (!start) start = ts;
             const progress = Math.min((ts - start) / duration, 1);
             const eased = 1 - Math.pow(1 - progress, 3);
@@ -144,8 +144,6 @@ export default function Landing() {
                 .delay-400 { animation-delay: .4s; }
                 .delay-500 { animation-delay: .5s; }
                 .delay-700 { animation-delay: .7s; }
-                .reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s cubic-bezier(.22,.61,.36,1); }
-                .reveal.is-visible { opacity: 1; transform: translateY(0); }
             `}</style>
 
             {/* 1. NAVBAR */}
@@ -165,12 +163,8 @@ export default function Landing() {
                                     : "opacity-0 z-0"
                             }`}
                             style={{
-                                transition:
-                                    "opacity 1s ease-in-out, transform 6s ease-out",
-                                transform:
-                                    index === currentImageIndex
-                                        ? "scale(1.05)"
-                                        : "scale(1)",
+                                transition: "opacity 1s ease-in-out, transform 6s ease-out",
+                                transform: index === currentImageIndex ? "scale(1.05)" : "scale(1)",
                             }}
                         />
                     ))}
@@ -188,9 +182,7 @@ export default function Landing() {
 
                         <h1
                             className={`text-3xl md:text-4xl lg:text-5xl font-bold leading-tight max-w-3xl mb-4 drop-shadow-xl ${
-                                heroLoaded
-                                    ? "animate-fade-up delay-100"
-                                    : "opacity-0"
+                                heroLoaded ? "animate-fade-up delay-100" : "opacity-0"
                             }`}
                         >
                             Tumbuhkan Kesejahteraan
@@ -202,20 +194,15 @@ export default function Landing() {
 
                         <p
                             className={`text-base md:text-lg lg:text-xl font-normal max-w-xl text-gray-100 drop-shadow-md leading-relaxed ${
-                                heroLoaded
-                                    ? "animate-fade-up delay-300"
-                                    : "opacity-0"
+                                heroLoaded ? "animate-fade-up delay-300" : "opacity-0"
                             }`}
                         >
-                            Budayakan Potensi Lokal untuk Tumbuhkan
-                            Kesejahteraan
+                            Budayakan Potensi Lokal untuk Tumbuhkan Kesejahteraan
                         </p>
 
                         <div
                             className={`flex gap-3 mt-8 ${
-                                heroLoaded
-                                    ? "animate-fade-up delay-500"
-                                    : "opacity-0"
+                                heroLoaded ? "animate-fade-up delay-500" : "opacity-0"
                             }`}
                         >
                             {heroImages.map((_, index) => (
@@ -291,7 +278,7 @@ export default function Landing() {
                     >
                         <div className="relative z-10 rounded-[2rem] overflow-hidden shadow-2xl group">
                             <img
-                                src="/images/tentang.webp"
+                                src="/images/halamantentang.webp"
                                 alt="Petani Sawah"
                                 className="object-cover w-full h-[400px] md:h-[500px] transition-transform duration-700 group-hover:scale-105"
                             />
@@ -330,13 +317,16 @@ export default function Landing() {
                             keberlanjutan lingkungan melalui kolaborasi lintas
                             sektor.
                         </p>
-                        <button className="flex items-center gap-2 text-[#4b552a] font-bold hover:gap-4 transition-all duration-300 group">
+                        <Link
+                            href="/tentang"
+                            className="flex items-center gap-2 text-[#4b552a] font-bold hover:gap-4 transition-all duration-300 group w-max cursor-pointer"
+                        >
                             Pelajari Lebih Lanjut{" "}
                             <ArrowRight
                                 size={20}
                                 className="transition-transform duration-300 group-hover:translate-x-1"
                             />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </section>
@@ -364,9 +354,7 @@ export default function Landing() {
                     </div>
                     <div
                         className={`bg-[#eff5da] p-8 md:p-10 rounded-3xl shadow-sm border border-[#dce5c0] relative overflow-hidden group transition-all duration-500 hover:shadow-xl hover:-translate-y-2 ${
-                            visiVisible
-                                ? "animate-fade-up delay-200"
-                                : "opacity-0"
+                            visiVisible ? "animate-fade-up delay-200" : "opacity-0"
                         }`}
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#4b552a]/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-125"></div>
@@ -400,9 +388,7 @@ export default function Landing() {
                     <div
                         ref={programHeaderRef}
                         className={`flex flex-col md:flex-row justify-between items-end mb-12 ${
-                            programHeaderVisible
-                                ? "animate-fade-up"
-                                : "opacity-0"
+                            programHeaderVisible ? "animate-fade-up" : "opacity-0"
                         }`}
                     >
                         <div>
@@ -413,16 +399,6 @@ export default function Landing() {
                                 Program Utama Pemberdayaan Masyarakat
                             </h2>
                         </div>
-                        <Link
-                            href="/program"
-                            className="mt-6 md:mt-0 text-[#4b552a] font-bold flex items-center gap-2 hover:gap-3 transition-all group"
-                        >
-                            Lihat Semua Program{" "}
-                            <ArrowRight
-                                size={20}
-                                className="transition-transform duration-300 group-hover:translate-x-1"
-                            />
-                        </Link>
                     </div>
 
                     <div
@@ -462,14 +438,10 @@ export default function Landing() {
                             <div
                                 key={p.href}
                                 className={`bg-white rounded-2xl overflow-hidden shadow-md flex flex-col sm:flex-row border border-gray-100 group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ${
-                                    programVisible
-                                        ? "animate-fade-up"
-                                        : "opacity-0"
+                                    programVisible ? "animate-fade-up" : "opacity-0"
                                 }`}
                                 style={{
-                                    animationDelay: programVisible
-                                        ? `${i * 0.15}s`
-                                        : "0s",
+                                    animationDelay: programVisible ? `${i * 0.15}s` : "0s",
                                 }}
                             >
                                 <div className="w-full sm:w-1/2 h-48 sm:h-auto overflow-hidden">
@@ -578,9 +550,7 @@ export default function Landing() {
                                 testiVisible ? "animate-fade-up" : "opacity-0"
                             }`}
                             style={{
-                                animationDelay: testiVisible
-                                    ? `${0.3 + i * 0.15}s`
-                                    : "0s",
+                                animationDelay: testiVisible ? `${0.3 + i * 0.15}s` : "0s",
                             }}
                         >
                             <div className="absolute top-0 right-0 w-20 h-20 bg-[#f7ffda] rounded-bl-full -mr-4 -mt-4"></div>
