@@ -5,90 +5,79 @@ import Footer from './components/Footer';
 import { Calendar, User, ArrowRight } from 'lucide-react';
 
 // Kategori Filter
-const categories = ["Semua Berita", "Pertanian", "Peternakan", "UMKM", "Kegiatan"];
+const categories = ["Semua Berita", "Pertanian", "Peternakan", "UMKM", "Perkebunan"];
 
 // Data Dummy Berita Blog
 const blogData = [
     {
         id: 1,
-        kategori: "Pertanian",
-        judul: "Dari Ladang untuk Negeri, Kediri Menyejahterakan Petani",
-        tanggal: "12 Okt 2024",
-        penulis: "Tim LBA",
-        gambar: "https://images.unsplash.com/photo-1592982537447-6f29922e2f5b?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Program pendampingan pertanian di Kediri berhasil meningkatkan hasil panen gabah hingga 30 ton dalam satu periode..."
+        kategori: "UMKM",
+        judul: "Bantuan Gerobak Usaha untuk Pelaku UMKM di Surabaya",
+        tanggal: "22 November 2024",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2024/11/Bantuan-Gerobak-Usaha-untuk-Pelaku-UMKM-di-Surabaya-2048x1536.jpeg",
+        ringkasan: "Dalam upaya mendukung pelaku UMKM untuk terus berkembang, Yatim Mandiri Surabaya melalui program UMKM Bangkit menyalurkan gerobak usaha",
+        link: "https://yatimmandiri.org/news/bantuan-gerobak-usaha-untuk-pelaku-umkm-di-surabaya/"
     },
     {
         id: 2,
-        kategori: "Kegiatan",
-        judul: "Launching Program Baru: Sinergi LBA dengan Pemerintah Desa",
-        tanggal: "05 Okt 2024",
-        penulis: "Humas LBA",
-        gambar: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Peresmian program pemberdayaan ekonomi baru yang menyasar kelompok tani dan UMKM di wilayah Sidoarjo..."
+        kategori: "Pertanian",
+        judul: "Petani Kediri Berdaya Melalui Program Lumbung Pangan Mandiri",
+        tanggal: "2 Oktober 2024",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2024/10/Petani-Kediri-Berdaya-Melalui-Program-Lumbung-Pangan-Mandiri-2048x1152.jpeg",
+        ringkasan: "Yatim Mandiri Kediri resmi meluncurkan program pemberdayaan yakni Lumbung Pangan Mandiri untuk para petani di Desa Sukoanyar, Kecamatan Mojo, Kabupaten Kediri. ",
+        link: "https://yatimmandiri.org/news/petani-kediri-berdaya-melalui-program-lumbung-pangan-mandiri/"
     },
     {
         id: 3,
-        kategori: "UMKM",
-        judul: "UMKM Bangkit: Kisah Ibu Setiani Tetap Berkarya",
-        tanggal: "28 Sep 2024",
-        penulis: "Tim LBA",
-        gambar: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Melalui program kesejahteraan perempuan, para janda kini memiliki akses permodalan tanpa riba untuk memulai usaha..."
+        kategori: "Peternakan",
+        judul: "Launching Program Pemberdayaan Peternak Domba di Malang",
+        tanggal: "20 November 2024",
+        penulis: "Divisi Peternakan",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2024/11/Launching-Program-Pemberdayaan-Peternak-Domba-di-Malang-2-1024x683.jpg",
+        ringkasan: "Program pemberdayaan peternak domba ini merupakan kolaborasi antara Yatim Mandiri dan Trimodadi Farm, yang berpengalaman dalam peternakan dan penggemukan domba serta kambing.",
+        link: "https://yatimmandiri.org/news/launching-program-pemberdayaan-peternak-domba-di-malang/"
     },
     {
         id: 4,
-        kategori: "Pertanian",
-        judul: "Mengenal Agroforestry: Meningkatkan Ekonomi Tanpa Merusak Hutan",
-        tanggal: "20 Sep 2024",
-        penulis: "Tim LBA",
-        gambar: "https://images.unsplash.com/photo-1511497584788-876760111969?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Pendekatan integrasi tanaman hutan dan perkebunan menjadi solusi cerdas bagi petani untuk tetap produktif..."
+        kategori: "Perkebunan",
+        judul: "Kunjungan Industri Mahasiswa ke Program Petani Lontar Tuban",
+        tanggal: "14 Januari 2025",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2025/01/Kunjungan-Industri-Mahasiswa-ke-Program-Petani-Lontar-Tuban-2048x1536.jpg",
+        ringkasan: "Program pemberdayaan ini memanfaatkan potensi pohon lontar atau siwalan yang melimpah di daerah tersebut. Melalui pendekatan berbasis kelompok, program ini bertujuan untuk meningkatkan kesejahteraan petani dan mendorong inovasi produk lokal.",
+        link: "https://yatimmandiri.org/news/kunjungan-industri-mahasiswa-ke-program-petani-lontar-tuban/"
     },
     {
         id: 5,
-        kategori: "Peternakan",
-        judul: "Pelatihan Fattening Domba untuk Peternak Pemula",
-        tanggal: "15 Sep 2024",
-        penulis: "Divisi Peternakan",
-        gambar: "https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Loka Berdaya Amerta mengadakan pelatihan intensif mengenai manajemen pakan dan penggemukan domba..."
+        kategori: "Pertanian",
+        judul: "Kolaborasi UNS dan Yatim Mandiri Perkuat Petani Ngawi Melalui Pelatihan Pupuk Organik",
+        tanggal: "07 Juli 2026",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2026/07/Ngawi-1-3.jpg",
+        ringkasan: "Melalui pelatihan intensif, mereka mengajak kelompok tani di Kecamatan Kasreman untuk beralih menggunakan pupuk organik demi memulihkan kesuburan tanah sekaligus mendongkrak produktivitas hasil panen. ",
+        link: "https://yatimmandiri.org/news/kolaborasi-uns-dan-yatim-mandiri-perkuat-petani-ngawi-melalui-pelatihan-pupuk-organik/"
     },
     {
         id: 6,
-        kategori: "Kegiatan",
-        judul: "Penyaluran Modal Usaha Tahap II untuk 37 Penerima Manfaat",
-        tanggal: "10 Sep 2024",
-        penulis: "Humas LBA",
-        gambar: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Sebanyak 37 pelaku usaha mikro dan ultra mikro menerima bantuan permodalan dengan akad Qordhul Hasan..."
+        kategori: "UMKM",
+        judul: "Bantuan UMKM Ramadhan di Bandung, Dorong Usaha Berdaya",
+        tanggal: "14 Maret 2025",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2025/03/Bantuan-UMKM-Ramadhan-di-Bandung-Dorong-Usaha-Berdaya-2048x1506.jpg",
+        ringkasan: " Program ini bertujuan untuk membantu para pelaku UMKM agar dapat lebih berkembang dan mandiri, terutama dalam menghadapi momen Ramadhan yang penuh berkah.",
+        link: "https://yatimmandiri.org/news/bantuan-umkm-ramadhan-di-bandung-dorong-usaha-berdaya/"
     },
     {
         id: 7,
         kategori: "Pertanian",
-        judul: "Panen Raya di Lumajang: Bukti Kemandirian Petani",
-        tanggal: "02 Sep 2024",
-        penulis: "Tim LBA",
-        gambar: "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Desa Sidorejo merayakan panen raya dengan hasil yang memuaskan berkat pendampingan teknis yang berkelanjutan..."
-    },
-    {
-        id: 8,
-        kategori: "UMKM",
-        judul: "Tips Memasarkan Produk UMKM di Era Digital",
-        tanggal: "25 Agu 2024",
-        penulis: "Divisi Ekonomi",
-        gambar: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Pendampingan tidak hanya soal modal, tetapi juga pemasaran. Berikut strategi jitu memasarkan produk UMKM..."
-    },
-    {
-        id: 9,
-        kategori: "Kegiatan",
-        judul: "Kunjungan Studi Tiru dari Lembaga Pemberdayaan Lain",
-        tanggal: "18 Agu 2024",
-        penulis: "Humas LBA",
-        gambar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800&auto=format&fit=crop",
-        ringkasan: "Menerima kunjungan dari berbagai lembaga untuk berbagi praktik baik dalam pengelolaan program pemberdayaan..."
+        judul: "Bersama PLN, Yatim Mandiri Luncurkan Program Electrifying Agriculture untuk Petani Sragen",
+        tanggal: "3 Desember 2025",
+        penulis: "Yatim Mandiri",
+        gambar: "https://yatimmandiri.org/news/wp-content/uploads/2025/12/WhatsApp-Image-2025-12-03-at-13.02.26.jpeg",
+        ringkasan: "Program ini merupakan bantuan PLN Electricity Services untuk memperkuat ketahanan pangan nasional. Program juga ditujukan untuk mengoptimalkan potensi desa guna meningkatkan kesejahteraan masyarakat.",
+        link: "https://yatimmandiri.org/news/bersama-pln-yatim-mandiri-luncurkan-program-electrifying-agriculture-untuk-petani-sragen/"
     }
 ];
 
@@ -180,14 +169,26 @@ export default function Blog() {
                                         {blog.ringkasan}
                                     </p>
 
-                                    {/* Tombol Selengkapnya */}
-                                    <Link 
-                                        href="#" 
-                                        className="flex items-center justify-between w-full bg-[#f7ffda] text-[#4b552a] px-4 py-3 rounded-lg text-sm font-bold hover:bg-[#4b552a] hover:text-white transition group/btn"
-                                    >
-                                        Baca Selengkapnya
-                                        <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition" />
-                                    </Link>
+                                    {/* Tombol Selengkapnya: eksternal jika ada link, internal jika tidak */}
+                                    {blog.link ? (
+                                        <a
+                                            href={blog.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between w-full bg-[#f7ffda] text-[#4b552a] px-4 py-3 rounded-lg text-sm font-bold hover:bg-[#4b552a] hover:text-white transition group/btn"
+                                        >
+                                            Baca Selengkapnya
+                                            <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition" />
+                                        </a>
+                                    ) : (
+                                        <Link 
+                                            href="#" 
+                                            className="flex items-center justify-between w-full bg-[#f7ffda] text-[#4b552a] px-4 py-3 rounded-lg text-sm font-bold hover:bg-[#4b552a] hover:text-white transition group/btn"
+                                        >
+                                            Baca Selengkapnya
+                                            <ArrowRight size={16} className="transform group-hover/btn:translate-x-1 transition" />
+                                        </Link>
+                                    )}
                                 </div>
                                 
                             </div>
@@ -199,8 +200,6 @@ export default function Blog() {
                 <div className="flex justify-center mt-16">
                     <div className="flex gap-2">
                         <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-[#4b552a] text-white font-bold cursor-pointer">1</button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 border border-gray-200 font-bold hover:bg-gray-50 cursor-pointer">2</button>
-                        <button className="w-10 h-10 flex items-center justify-center rounded-lg bg-white text-gray-600 border border-gray-200 font-bold hover:bg-gray-50 cursor-pointer">3</button>
                     </div>
                 </div>
             </section>

@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
+import { Phone, Mail, MapPin } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import { MapPin, Phone, Mail, Send, Instagram, Facebook, Youtube, Twitter } from 'lucide-react';
 
 export default function Contact() {
     return (
@@ -22,7 +22,7 @@ export default function Contact() {
             {/* 3. KARTU KONTAK (3 KOLOM) */}
             <section className="container mx-auto px-6 md:px-12 mb-20">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    
+
                     {/* Kartu 1: Telepon */}
                     <div className="bg-[#4b552a] rounded-3xl p-8 text-center text-white shadow-lg hover:-translate-y-2 transition duration-300">
                         <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -71,12 +71,6 @@ export default function Contact() {
                         <p className="text-gray-600 mb-8">
                             Jangan ragu untuk menghubungi kami. Tim kami akan dengan senang hati membantu Anda.
                         </p>
-                        <div className="flex gap-4 text-[#4b552a]">
-                            <a href="#" className="hover:text-[#9c8e4d] transition"><Instagram size={24} /></a>
-                            <a href="#" className="hover:text-[#9c8e4d] transition"><Facebook size={24} /></a>
-                            <a href="#" className="hover:text-[#9c8e4d] transition"><Twitter size={24} /></a>
-                            <a href="#" className="hover:text-[#9c8e4d] transition"><Youtube size={24} /></a>
-                        </div>
                     </div>
 
                     {/* Kanan: Form */}
@@ -101,7 +95,6 @@ export default function Contact() {
                                 <textarea rows={4} className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#4b552a] transition resize-none" placeholder="Tuliskan pesan Anda di sini..." required></textarea>
                             </div>
                             <button type="submit" className="flex items-center justify-center gap-2 w-full bg-[#4b552a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#3a4220] transition duration-300">
-                                <Send size={18} />
                                 Kirim Pesan
                             </button>
                         </form>
