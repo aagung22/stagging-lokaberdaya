@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ContactMessage;
+use App\Models\SiteSetting;
+use App\Support\ImageUploader;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,12 +38,26 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $settings = SiteSetting::allValues();
+
+        foreach (['logo', 'about_image', 'about_values_image', 'about_page_image'] as $imageKey) {
+            if (! empty($settings[$imageKey])) {
+                $settings[$imageKey] = ImageUploader::url($settings[$imageKey]);
+            }
+        }
+
+        $user = $request->user();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
+            'site' => $settings,
+            'unreadMessages' => $user?->isAdmin()
+                ? ContactMessage::query()->where('is_read', false)->count()
+                : 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

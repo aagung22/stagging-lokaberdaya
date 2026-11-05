@@ -1,16 +1,55 @@
 import { useState } from 'react';
-import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ChevronDown, LayoutDashboard, LogOut, Menu, X } from 'lucide-react';
+import { useLiveRefresh } from '@/hooks/use-live-refresh';
+import { logout } from '@/routes';
+
+const links = [
+    { label: 'Beranda', href: '/', match: '/' },
+    { label: 'Tentang Kami', href: '/tentang', match: '/tentang' },
+    { label: 'Blog', href: '/blog', match: '/blog' },
+];
+
+const programs = [
+    {
+        label: 'Program Agriculture (Pertanian)',
+        short: 'Agriculture (Pertanian)',
+        href: '/program/agriculture',
+    },
+    {
+        label: 'Program Agroforestry dan Perkebunan',
+        short: 'Agroforestry dan Perkebunan',
+        href: '/program/agroforestry',
+    },
+    {
+        label: 'Program Peternakan',
+        short: 'Peternakan',
+        href: '/program/peternakan',
+    },
+    {
+        label: 'Program UMKM Bangkit',
+        short: 'UMKM Bangkit',
+        href: '/program/umkm',
+    },
+];
 
 export default function Navbar() {
+    // Halaman publik/user ikut memperbarui data secara otomatis.
+    useLiveRefresh(10000);
+
     const [isProgramOpen, setIsProgramOpen] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isMobileProgramOpen, setIsMobileProgramOpen] = useState(false);
 
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const site = props.site ?? {};
+    const user = props.auth?.user;
 
     const isActive = (path: string) => {
-        if (path === '/') return url === '/';
+        if (path === '/') {
+            return url === '/';
+        }
+
         return url.startsWith(path);
     };
 
@@ -21,143 +60,193 @@ export default function Navbar() {
         setIsMobileProgramOpen(false);
     };
 
-    return (
-        <nav className="w-full bg-[#4b552a] px-4 md:px-6 py-2.5 md:py-3 shadow-md fixed top-0 left-0 z-50">
-            <div className="container mx-auto flex items-center justify-between">
+    const handleLogout = () => {
+        closeMobile();
+        router.post(logout());
+    };
 
-                {/* 1. KIRI: Logo & Teks */}
+    const logoSrc = site.logo ?? '/images/logo lba.webp';
+    const siteName = site.site_name ?? 'Loka Berdaya Amerta';
+
+    return (
+        <nav className="fixed top-0 left-0 z-50 w-full bg-[#4b552a] px-4 py-2.5 shadow-md md:px-6 md:py-3">
+            <div className="container mx-auto flex items-center justify-between">
                 <div className="flex items-center gap-2 md:gap-3">
                     <img
-                        src="/images/logo lba.webp"
-                        alt="Logo LBA"
-                        className="h-10 md:h-14 w-auto object-contain"
-                        onError={(e) => e.currentTarget.style.display = 'none'}
+                        src={logoSrc}
+                        alt={`Logo ${siteName}`}
+                        className="h-10 w-auto object-contain md:h-14"
+                        onError={(e) =>
+                            (e.currentTarget.style.display = 'none')
+                        }
                     />
                     <Link
                         href="/"
-                        className="text-base md:text-xl font-bold text-white tracking-tight hover:text-[#f7ffda] transition"
+                        className="text-base font-bold tracking-tight text-white transition hover:text-[#f7ffda] md:text-xl"
                         onClick={closeMobile}
                     >
-                        Loka Berdaya Amerta
+                        {siteName}
                     </Link>
                 </div>
 
-                {/* 2. KANAN: Menu Desktop + Tombol Login */}
-                <div className="hidden md:flex items-center gap-6 lg:gap-12">
+                <div className="hidden items-center gap-6 md:flex lg:gap-10">
+                    <div className="flex items-center gap-5 text-sm font-medium text-[#f7ffda]/80 md:text-[15px] lg:gap-7">
+                        {links.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`transition hover:text-white ${
+                                    isActive(link.match)
+                                        ? 'border-b-2 border-white pb-1 font-bold text-white'
+                                        : ''
+                                }`}
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
 
-                    {/* Menu Navigasi Desktop */}
-                    <div className="flex items-center gap-5 lg:gap-7 text-[#f7ffda]/80 font-medium text-sm md:text-[15px]">
-                        
-                        {/* Beranda */}
-                        <Link 
-                            href="/" 
-                            className={`hover:text-white transition ${isActive('/') ? 'text-white font-bold border-b-2 border-white pb-1' : ''}`}
-                        >
-                            Beranda
-                        </Link>
-                        
-                        {/* Tentang Kami */}
-                        <Link 
-                            href="/tentang" 
-                            className={`hover:text-white transition ${isActive('/tentang') ? 'text-white font-bold border-b-2 border-white pb-1' : ''}`}
-                        >
-                            Tentang Kami
-                        </Link>
-                        
-                        {/* Blog */}
-                        <Link 
-                            href="/blog" 
-                            className={`hover:text-white transition ${isActive('/blog') ? 'text-white font-bold border-b-2 border-white pb-1' : ''}`}
-                        >
-                            Blog
-                        </Link>
-
-                        {/* Dropdown Program (Desktop - hover) */}
                         <div
                             className="relative"
                             onMouseEnter={() => setIsProgramOpen(true)}
                             onMouseLeave={() => setIsProgramOpen(false)}
                         >
-                            <button 
-                                className={`flex items-center gap-1 hover:text-white transition py-2 focus:outline-none cursor-pointer ${
-                                    isProgramActive ? 'text-white font-bold' : ''
+                            <button
+                                className={`flex cursor-pointer items-center gap-1 py-2 transition hover:text-white focus:outline-none ${
+                                    isProgramActive
+                                        ? 'font-bold text-white'
+                                        : ''
                                 }`}
                             >
                                 Program Pemberdayaan
                                 <ChevronDown
                                     size={15}
-                                    className={`transition-transform duration-200 ${isProgramOpen ? 'rotate-180' : ''}`}
+                                    className={`transition-transform duration-200 ${
+                                        isProgramOpen ? 'rotate-180' : ''
+                                    }`}
                                 />
                             </button>
 
                             {isProgramOpen && (
-                                <div className="absolute top-full left-0 mt-1 w-68 bg-white rounded-xl shadow-xl overflow-hidden py-2 text-gray-700 z-50 border border-gray-100">
-                                    <Link href="/program/agriculture" className={`block px-4 py-2.5 hover:bg-[#f7ffda] hover:text-[#4b552a] transition font-medium text-sm ${isActive('/program/agriculture') ? 'bg-[#f7ffda] text-[#4b552a] border-l-4 border-[#4b552a]' : ''}`}>Program Agriculture (Pertanian)</Link>
-                                    <Link href="/program/agroforestry" className={`block px-4 py-2.5 hover:bg-[#f7ffda] hover:text-[#4b552a] transition font-medium text-sm ${isActive('/program/agroforestry') ? 'bg-[#f7ffda] text-[#4b552a] border-l-4 border-[#4b552a]' : ''}`}>Program Agroforestry dan Perkebunan</Link>
-                                    <Link href="/program/peternakan" className={`block px-4 py-2.5 hover:bg-[#f7ffda] hover:text-[#4b552a] transition font-medium text-sm ${isActive('/program/peternakan') ? 'bg-[#f7ffda] text-[#4b552a] border-l-4 border-[#4b552a]' : ''}`}>Program Peternakan</Link>
-                                    <Link href="/program/umkm" className={`block px-4 py-2.5 hover:bg-[#f7ffda] hover:text-[#4b552a] transition font-medium text-sm ${isActive('/program/umkm') ? 'bg-[#f7ffda] text-[#4b552a] border-l-4 border-[#4b552a]' : ''}`}>Program UMKM Bangkit</Link>
+                                <div className="absolute top-full left-0 z-50 mt-1 w-72 overflow-hidden rounded-xl border border-gray-100 bg-white py-2 text-gray-700 shadow-xl">
+                                    {programs.map((program) => (
+                                        <Link
+                                            key={program.href}
+                                            href={program.href}
+                                            className={`block px-4 py-2.5 text-sm font-medium transition hover:bg-[#f7ffda] hover:text-[#4b552a] ${
+                                                isActive(program.href)
+                                                    ? 'border-l-4 border-[#4b552a] bg-[#f7ffda] text-[#4b552a]'
+                                                    : ''
+                                            }`}
+                                        >
+                                            {program.label}
+                                        </Link>
+                                    ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* Kontak */}
-                        <Link 
-                            href="/kontak" 
-                            className={`hover:text-white transition ${isActive('/kontak') ? 'text-white font-bold border-b-2 border-white pb-1' : ''}`}
+                        <Link
+                            href="/kontak"
+                            className={`transition hover:text-white ${
+                                isActive('/kontak')
+                                    ? 'border-b-2 border-white pb-1 font-bold text-white'
+                                    : ''
+                            }`}
                         >
                             Hubungi Kami
                         </Link>
                     </div>
 
-                    {/* Tombol Login & Register (Desktop) */}
-                    <div className="flex items-center gap-4">
-                        <Link href="/login" className="text-white font-medium text-sm md:text-[15px] hover:text-[#f7ffda] transition">
-                            Log in
-                        </Link>
-                        <Link href="/register" className="bg-[#f7ffda] text-[#4b552a] px-4 py-2 rounded-md font-bold text-sm md:text-[15px] hover:bg-white transition shadow-sm">
-                            Register
-                        </Link>
+                    <div className="flex items-center gap-3">
+                        {user ? (
+                            <>
+                                {user.is_admin && (
+                                    <Link
+                                        href="/admin"
+                                        className="flex items-center gap-2 rounded-md bg-[#f7ffda] px-4 py-2 text-sm font-bold text-[#4b552a] shadow-sm transition hover:bg-white"
+                                    >
+                                        <LayoutDashboard size={16} />
+                                        Dashboard
+                                    </Link>
+                                )}
+                                {!user.is_admin && (
+                                    <span className="text-sm text-[#f7ffda]/80">
+                                        Halo, {user.name.split(' ')[0]}
+                                    </span>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    className="flex cursor-pointer items-center gap-2 text-sm font-medium text-white transition hover:text-[#f7ffda]"
+                                >
+                                    <LogOut size={16} />
+                                    Keluar
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/login"
+                                    className="text-sm font-medium text-white transition hover:text-[#f7ffda] md:text-[15px]"
+                                >
+                                    Log in
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    className="rounded-md bg-[#f7ffda] px-4 py-2 text-sm font-bold text-[#4b552a] shadow-sm transition hover:bg-white md:text-[15px]"
+                                >
+                                    Register
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
 
-                {/* 3. TOMBOL HAMBURGER (Mobile saja) */}
                 <button
                     onClick={() => setIsMobileOpen(!isMobileOpen)}
-                    className="md:hidden text-white p-2 -mr-2 focus:outline-none"
+                    className="-mr-2 p-2 text-white focus:outline-none md:hidden"
                     aria-label="Toggle menu"
                 >
                     {isMobileOpen ? <X size={26} /> : <Menu size={26} />}
                 </button>
             </div>
 
-            {/* 4. MOBILE DRAWER MENU */}
             <div
-                className={`md:hidden overflow-hidden transition-[max-height] duration-300 ease-in-out ${
-                    isMobileOpen ? 'max-h-[600px]' : 'max-h-0'
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out md:hidden ${
+                    isMobileOpen ? 'max-h-[700px]' : 'max-h-0'
                 }`}
             >
-                <div className="container mx-auto pt-3 pb-2 flex flex-col gap-1 text-[#f7ffda]/90 font-medium">
+                <div className="container mx-auto flex flex-col gap-1 pt-3 pb-2 font-medium text-[#f7ffda]/90">
+                    {links.map((link) => (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={closeMobile}
+                            className={`border-b border-white/10 px-2 py-2.5 transition hover:text-white ${
+                                isActive(link.match)
+                                    ? 'bg-white/10 font-bold text-white'
+                                    : ''
+                            }`}
+                        >
+                            {link.label}
+                        </Link>
+                    ))}
 
-                    <Link href="/" onClick={closeMobile} className={`py-2.5 px-2 border-b border-white/10 hover:text-white transition ${isActive('/') ? 'text-white font-bold bg-white/10 rounded-t-md' : ''}`}>
-                        Beranda
-                    </Link>
-                    <Link href="/tentang" onClick={closeMobile} className={`py-2.5 px-2 border-b border-white/10 hover:text-white transition ${isActive('/tentang') ? 'text-white font-bold bg-white/10' : ''}`}>
-                        Tentang Kami
-                    </Link>
-                    <Link href="/blog" onClick={closeMobile} className={`py-2.5 px-2 border-b border-white/10 hover:text-white transition ${isActive('/blog') ? 'text-white font-bold bg-white/10' : ''}`}>
-                        Blog
-                    </Link>
-
-                    {/* Dropdown Program (Mobile - klik) */}
                     <div className="border-b border-white/10">
                         <button
-                            onClick={() => setIsMobileProgramOpen(!isMobileProgramOpen)}
-                            className={`w-full flex items-center justify-between py-2.5 px-2 hover:text-white transition ${isProgramActive ? 'text-white font-bold' : ''}`}
+                            onClick={() =>
+                                setIsMobileProgramOpen(!isMobileProgramOpen)
+                            }
+                            className={`flex w-full items-center justify-between px-2 py-2.5 transition hover:text-white ${
+                                isProgramActive ? 'font-bold text-white' : ''
+                            }`}
                         >
                             Program Pemberdayaan
                             <ChevronDown
                                 size={17}
-                                className={`transition-transform duration-200 ${isMobileProgramOpen ? 'rotate-180' : ''}`}
+                                className={`transition-transform duration-200 ${
+                                    isMobileProgramOpen ? 'rotate-180' : ''
+                                }`}
                             />
                         </button>
                         <div
@@ -165,35 +254,77 @@ export default function Navbar() {
                                 isMobileProgramOpen ? 'max-h-96' : 'max-h-0'
                             }`}
                         >
-                            <div className="flex flex-col bg-black/10 rounded-lg mb-2 text-sm">
-                                <Link href="/program/agriculture" onClick={closeMobile} className={`py-2 px-4 hover:text-white transition ${isActive('/program/agriculture') ? 'text-white font-bold' : ''}`}>Agriculture (Pertanian)</Link>
-                                <Link href="/program/agroforestry" onClick={closeMobile} className={`py-2 px-4 hover:text-white transition ${isActive('/program/agroforestry') ? 'text-white font-bold' : ''}`}>Agroforestry dan Perkebunan</Link>
-                                <Link href="/program/peternakan" onClick={closeMobile} className={`py-2 px-4 hover:text-white transition ${isActive('/program/peternakan') ? 'text-white font-bold' : ''}`}>Peternakan</Link>
-                                <Link href="/program/umkm" onClick={closeMobile} className={`py-2 px-4 hover:text-white transition ${isActive('/program/umkm') ? 'text-white font-bold' : ''}`}>UMKM Bangkit</Link>
+                            <div className="mb-2 flex flex-col rounded-lg bg-black/10 text-sm">
+                                {programs.map((program) => (
+                                    <Link
+                                        key={program.href}
+                                        href={program.href}
+                                        onClick={closeMobile}
+                                        className={`px-4 py-2 transition hover:text-white ${
+                                            isActive(program.href)
+                                                ? 'font-bold text-white'
+                                                : ''
+                                        }`}
+                                    >
+                                        {program.short}
+                                    </Link>
+                                ))}
                             </div>
                         </div>
                     </div>
 
-                    <Link href="/kontak" onClick={closeMobile} className={`py-2.5 px-2 border-b border-white/10 hover:text-white transition ${isActive('/kontak') ? 'text-white font-bold bg-white/10 rounded-b-md' : ''}`}>
+                    <Link
+                        href="/kontak"
+                        onClick={closeMobile}
+                        className={`border-b border-white/10 px-2 py-2.5 transition hover:text-white ${
+                            isActive('/kontak')
+                                ? 'bg-white/10 font-bold text-white'
+                                : ''
+                        }`}
+                    >
                         Hubungi Kami
                     </Link>
 
-                    {/* Login & Register Mobile */}
                     <div className="flex items-center gap-3 pt-3 pb-2">
-                        <Link
-                            href="/login"
-                            onClick={closeMobile}
-                            className="flex-1 text-center text-white font-medium border border-white/30 py-2 rounded-md hover:bg-white/10 transition"
-                        >
-                            Log in
-                        </Link>
-                        <Link
-                            href="/register"
-                            onClick={closeMobile}
-                            className="flex-1 text-center bg-[#f7ffda] text-[#4b552a] py-2 rounded-md font-bold hover:bg-white transition"
-                        >
-                            Register
-                        </Link>
+                        {user ? (
+                            <>
+                                {user.is_admin && (
+                                    <Link
+                                        href="/admin"
+                                        onClick={closeMobile}
+                                        className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#f7ffda] py-2 font-bold text-[#4b552a] transition hover:bg-white"
+                                    >
+                                        <LayoutDashboard size={16} />
+                                        Dashboard
+                                    </Link>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleLogout}
+                                    className="flex flex-1 items-center justify-center gap-2 rounded-md border border-white/30 py-2 font-medium text-white transition hover:bg-white/10"
+                                >
+                                    <LogOut size={16} />
+                                    Keluar
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href="/login"
+                                    onClick={closeMobile}
+                                    className="flex-1 rounded-md border border-white/30 py-2 text-center font-medium text-white transition hover:bg-white/10"
+                                >
+                                    Log in
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    onClick={closeMobile}
+                                    className="flex-1 rounded-md bg-[#f7ffda] py-2 text-center font-bold text-[#4b552a] transition hover:bg-white"
+                                >
+                                    Register
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

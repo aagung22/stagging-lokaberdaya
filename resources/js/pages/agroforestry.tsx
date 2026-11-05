@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import { Users, Building2, TreePine, X } from 'lucide-react'; 
+import type { Program, ProgramActivity } from '@/types/content';
+import {
+    Users,
+    Building2,
+    Wheat,
+    TreePine,
+    Milk,
+    Wallet,
+    MapPin,
+    TrendingUp,
+    X,
+} from 'lucide-react';
 
 // --- HOOK: reveal on scroll ---
 function useReveal(options = {}) {
@@ -28,43 +39,27 @@ function useReveal(options = {}) {
     return [ref, visible] as const;
 }
 
-// Data kegiatan (Sesuai gambar referensi)
-const kegiatanData = [
-    {
-        id: 1,
-        kota: "Mojokerto",
-        deskripsi: [
-            "Pemberdayaan perkebunan melalui komoditas penanaman Pisang & Rimpang",
-            "Lokasi : Desa Gumeng, Kec. Gondang",
-            "Luasan Lahan : 3.000 m²",
-            "Jumlah PM : 4 PM"
-        ],
-        penjelasanPanjang: `Program Agroforestry & Perkebunan di Kediri merupakan model pemberdayaan berbasis kemitraan dalam pengelolaan lahan produktif secara berkelanjutan. 
+const statIcons = {
+    users: Users,
+    building: Building2,
+    wheat: Wheat,
+    'tree-pine': TreePine,
+    milk: Milk,
+    wallet: Wallet,
+    'map-pin': MapPin,
+    'trending-up': TrendingUp,
+} as const;
 
-Program ini berfokus pada optimalisasi lahan, termasuk skema alih kelola kawasan, untuk dikembangkan menjadi usaha perkebunan yang bernilai ekonomi. Melalui legalitas dan perjanjian yang jelas, program memastikan masyarakat memiliki akses kelola lahan yang aman dan berkelanjutan.`,
-        gambar: "https://images.unsplash.com/photo-1592982537447-6f29922e2f5b?q=80&w=800&auto=format&fit=crop"
-    },
-    {
-        id: 2,
-        kota: "Jombang",
-        deskripsi: [
-            "Pemberdayaan perkebunan melalui komoditas penanaman Pisang. Program ini juga didukung oleh nota kesepahaman (MoU) terkait alih kelola lahan hutan untuk kegiatan agroforestri yang produktif dan berkelanjutan",
-            "Lokasi : Desa Wonosalam",
-            "Luasan Lahan : 5.000 m²", 
-            "Jumlah PM : 2 PM"
-        ],
-        penjelasanPanjang: `Program Agroforestry & Perkebunan di Sukoharjo mengedepankan integrasi tanaman kehutanan dan komoditas perkebunan. 
+type Props = {
+    program: Program;
+};
 
-Dalam implementasinya, masyarakat didampingi dalam pengelolaan usaha, termasuk aspek budidaya, pemeliharaan lingkungan, serta sistem operasional yang terstruktur. Program juga membuka akses pasar dan menerapkan skema bagi hasil yang transparan, sehingga masyarakat tidak bergantung pada tengkulak dan memiliki kepastian pendapatan.`,
-        gambar: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?q=80&w=800&auto=format&fit=crop"
-    }
-];
-
-export default function Agroforestry() {
+export default function Agroforestry({ program }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedKegiatan, setSelectedKegiatan] = useState<any>(null);
+    const [selectedKegiatan, setSelectedKegiatan] =
+        useState<ProgramActivity | null>(null);
 
-    const handleOpenModal = (item: any) => {
+    const handleOpenModal = (item: ProgramActivity) => {
         setSelectedKegiatan(item);
         setIsModalOpen(true);
     };
@@ -85,9 +80,16 @@ export default function Agroforestry() {
         return () => clearTimeout(t);
     }, []);
 
+    const descriptionParagraphs = (program.hero_description ?? '')
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
     return (
-        <div className="min-h-screen bg-[#f7ffda] font-sans text-gray-800 overflow-hidden relative">
-            <Head title="Agroforestry dan Perkebunan - Loka Berdaya Amerta" />
+        <div className="relative min-h-screen overflow-hidden bg-[#f7ffda] font-sans text-gray-800">
+            <Head
+                title={`${program.page_title ?? program.title} - Loka Berdaya Amerta`}
+            />
 
             {/* GLOBAL KEYFRAMES UNTUK ANIMASI */}
             <style>{`
@@ -117,130 +119,139 @@ export default function Agroforestry() {
             <Navbar />
 
             {/* 2. HERO SECTION */}
-            <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 bg-[#f7ffda]">
-                <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col-reverse md:flex-row items-center gap-12 lg:gap-20">
-                    
+            <section className="relative bg-[#f7ffda] pt-32 pb-24 md:pt-40 md:pb-32">
+                <div className="relative z-10 container mx-auto flex flex-col-reverse items-center gap-12 px-6 md:flex-row md:px-12 lg:gap-20">
                     {/* KIRI: Gambar Besar (Animasi Slide Right / Masuk dari Kanan) */}
-                    <div className={`w-full md:w-1/2 relative ${heroLoaded ? "animate-slide-right" : "opacity-0"}`}>
-                        <img 
-                            src="/images/agroforestry.webp"
-                            alt="Agroforestry" 
-                            className="w-full h-[400px] md:h-[600px] object-cover rounded-3xl rounded-tr-[6rem] shadow-lg border-4 border-white"
+                    <div
+                        className={`relative w-full md:w-1/2 ${heroLoaded ? 'animate-slide-right' : 'opacity-0'}`}
+                    >
+                        <img
+                            src={
+                                program.hero_image_url ??
+                                '/images/agroforestry.webp'
+                            }
+                            alt={program.title}
+                            className="h-[400px] w-full rounded-3xl rounded-tr-[6rem] border-4 border-white object-cover shadow-lg md:h-[600px]"
                         />
                     </div>
 
                     {/* KANAN: Teks Penjelasan (Animasi Slide Left / Masuk dari Kiri) */}
-                    <div className={`w-full md:w-1/2 flex flex-col justify-center ${heroLoaded ? "animate-slide-left" : "opacity-0"}`}>
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-8">
-                            Program Agroforestry dan Perkebunan
+                    <div
+                        className={`flex w-full flex-col justify-center md:w-1/2 ${heroLoaded ? 'animate-slide-left' : 'opacity-0'}`}
+                    >
+                        <h1 className="mb-8 text-3xl leading-tight font-bold text-gray-900 md:text-4xl lg:text-5xl">
+                            {program.page_title ?? program.title}
                         </h1>
-                        
-                        <div className="space-y-5 text-gray-600 leading-relaxed text-justify md:text-left">
-                            <p>
-                                Program Agroforestry & Perkebunan merupakan model pemberdayaan berbasis kemitraan dalam pengelolaan lahan produktif secara berkelanjutan. Program ini berfokus pada optimalisasi lahan, termasuk skema alih kelola kawasan, untuk dikembangkan menjadi usaha perkebunan yang bernilai ekonomi.
-                            </p>
-                            <p>
-                                Melalui legalitas dan perjanjian yang jelas, program memastikan masyarakat memiliki akses kelola lahan yang aman dan berkelanjutan. Proses dilanjutkan dengan perencanaan dan eksekusi berbasis potensi lokal, mencakup integrasi tanaman kehutanan dan komoditas perkebunan.
-                            </p>
-                            <p>
-                                Dalam implementasinya, masyarakat didampingi dalam pengelolaan usaha, termasuk aspek budidaya, pemeliharaan lingkungan, serta sistem operasional yang terstruktur. Program juga membuka akses pasar dan menerapkan skema bagi hasil yang transparan, sehingga masyarakat tidak bergantung pada tengkulak dan memiliki kepastian pendapatan.
-                            </p>
-                            <p>
-                                Dengan pendekatan kemitraan ini, program mendorong kemandirian ekonomi masyarakat sekaligus memastikan pengelolaan lahan yang produktif, legal, dan berkelanjutan.
-                            </p>
+
+                        <div className="space-y-5 text-justify leading-relaxed text-gray-600 md:text-left">
+                            {descriptionParagraphs.map((paragraph, index) => (
+                                <p key={index}>{paragraph}</p>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* 3. STATS BAR (Animasi Fade Up) */}
-            <div ref={statsRef} className="container mx-auto px-6 md:px-12 relative z-20 -mt-20 md:-mt-24">
-                <div className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border border-gray-100 ${statsVisible ? "animate-fade-up delay-200" : "opacity-0"}`}>
-                    
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <Users size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">100+</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Penerima Manfaat</p>
-                        </div>
-                    </div>
-                    
-                    <div className="hidden md:block w-px h-16 bg-gray-200"></div>
-                    
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <Building2 size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">2 Kota</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Titik Pemberdayaan</p>
-                        </div>
-                    </div>
+            {(program.stats ?? []).length > 0 && (
+                <div
+                    ref={statsRef}
+                    className="relative z-20 container mx-auto -mt-20 px-6 md:-mt-24 md:px-12"
+                >
+                    <div
+                        className={`flex flex-col items-center justify-between gap-8 rounded-3xl border border-gray-100 bg-white p-8 shadow-xl md:flex-row md:p-10 ${statsVisible ? 'animate-fade-up delay-200' : 'opacity-0'}`}
+                    >
+                        {(program.stats ?? []).map((stat, index) => {
+                            const Icon =
+                                statIcons[
+                                    stat.icon as keyof typeof statIcons
+                                ] ?? Users;
 
-                    <div className="hidden md:block w-px h-16 bg-gray-200"></div>
-                    
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <TreePine size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">150 Ton</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Hasil Pertanian</p>
-                        </div>
-                    </div>
+                            return (
+                                <div key={stat.id} className="contents">
+                                    {index > 0 && (
+                                        <div className="hidden h-16 w-px bg-gray-200 md:block"></div>
+                                    )}
 
+                                    <div className="flex w-full items-start gap-4 md:w-1/3">
+                                        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#fce4d1] text-[#d97736]">
+                                            <Icon size={32} />
+                                        </div>
+                                        <div>
+                                            <h3 className="mb-1 text-xl font-bold text-gray-900 md:text-2xl">
+                                                {stat.value}
+                                            </h3>
+                                            <p className="text-sm leading-tight text-gray-500">
+                                                {stat.label}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* 4. KEGIATAN KAMI SECTION */}
-            <section className="container mx-auto px-6 md:px-12 py-24 mt-12">
+            <section className="container mx-auto mt-12 px-6 py-24 md:px-12">
                 {/* Header dengan Animasi */}
-                <div ref={headerRef} className="text-center mb-16">
-                    <h2 className={`text-3xl md:text-4xl font-bold text-[#4b552a] ${headerVisible ? "animate-fade-up" : "opacity-0"}`}>
+                <div ref={headerRef} className="mb-16 text-center">
+                    <h2
+                        className={`text-3xl font-bold text-[#4b552a] md:text-4xl ${headerVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                    >
                         Kegiatan Kami
                     </h2>
                 </div>
 
                 {/* Grid Card Kegiatan dengan Staggered Animation */}
-                <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                    {kegiatanData.map((item, index) => (
-                        <div 
-                            key={item.id} 
-                            className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-lg transition-all duration-300 ${gridVisible ? "animate-fade-up" : "opacity-0"}`}
-                            style={{ 
-                                animationDelay: gridVisible ? `${index * 0.1}s` : '0s' 
+                <div
+                    ref={gridRef}
+                    className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2"
+                >
+                    {(program.activities ?? []).map((item, index) => (
+                        <div
+                            key={item.id}
+                            className={`flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg ${gridVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                            style={{
+                                animationDelay: gridVisible
+                                    ? `${index * 0.1}s`
+                                    : '0s',
                             }}
                         >
-                            
                             <div className="h-56 w-full overflow-hidden">
-                                <img 
-                                    src={item.gambar} 
-                                    alt={`Kegiatan di ${item.kota}`} 
-                                    className="w-full h-full object-cover hover:scale-105 transition duration-500"
+                                <img
+                                    src={
+                                        item.image_url ??
+                                        '/images/agroforestry.webp'
+                                    }
+                                    alt={`Kegiatan di ${item.city}`}
+                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
                                 />
                             </div>
 
-                            <div className="p-6 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.kota}</h3>
-                                
-                                <div className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
-                                    <ul className="list-disc pl-4 space-y-2 marker:text-[#4b552a]">
-                                        {item.deskripsi.map((desc, i) => (
-                                            <li key={i}>{desc}</li>
-                                        ))}
+                            <div className="flex flex-grow flex-col p-6">
+                                <h3 className="mb-3 text-xl font-bold text-gray-900">
+                                    {item.city}
+                                </h3>
+
+                                <div className="mb-6 flex-grow text-sm leading-relaxed text-gray-600">
+                                    <ul className="list-disc space-y-2 pl-4 marker:text-[#4b552a]">
+                                        {(item.detail_items ?? []).map(
+                                            (desc, i) => (
+                                                <li key={i}>{desc}</li>
+                                            ),
+                                        )}
                                     </ul>
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={() => handleOpenModal(item)}
-                                    className="w-full bg-[#4b552a] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a4220] transition mt-auto cursor-pointer"
+                                    className="mt-auto w-full cursor-pointer rounded-lg bg-[#4b552a] py-2.5 text-sm font-medium text-white transition hover:bg-[#3a4220]"
                                 >
                                     Selengkapnya
                                 </button>
                             </div>
-                            
                         </div>
                     ))}
                 </div>
@@ -248,33 +259,32 @@ export default function Agroforestry() {
 
             {/* 5. MODAL / POP-UP PENJELASAN */}
             {isModalOpen && selectedKegiatan && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
-                        
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="flex max-h-[90vh] w-full max-w-3xl animate-in flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-300 fade-in zoom-in">
                         {/* Header Modal */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#f7ffda]">
+                        <div className="flex items-center justify-between border-b border-gray-100 bg-[#f7ffda] p-6">
                             <h3 className="text-2xl font-bold text-[#4b552a]">
-                                Agroforestry di {selectedKegiatan.kota}
+                                {program.title} di {selectedKegiatan.city}
                             </h3>
-                            
-                            <button 
+
+                            <button
                                 onClick={handleCloseModal}
-                                className="p-2 bg-white rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition shadow-sm cursor-pointer"
+                                className="cursor-pointer rounded-full bg-white p-2 text-gray-500 shadow-sm transition hover:bg-red-50 hover:text-red-500"
                             >
                                 <X size={24} />
                             </button>
                         </div>
 
                         {/* Konten Modal */}
-                        <div className="p-8 overflow-y-auto text-gray-700 leading-relaxed text-justify whitespace-pre-wrap">
-                            {selectedKegiatan.penjelasanPanjang}
+                        <div className="overflow-y-auto p-8 text-justify leading-relaxed whitespace-pre-wrap text-gray-700">
+                            {selectedKegiatan.long_description}
                         </div>
 
                         {/* Footer Modal */}
-                        <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50">
-                            <button 
+                        <div className="flex justify-end border-t border-gray-100 bg-gray-50 p-4">
+                            <button
                                 onClick={handleCloseModal}
-                                className="bg-[#4b552a] text-white px-8 py-2.5 rounded-lg font-medium hover:bg-[#3a4220] transition cursor-pointer"
+                                className="cursor-pointer rounded-lg bg-[#4b552a] px-8 py-2.5 font-medium text-white transition hover:bg-[#3a4220]"
                             >
                                 Tutup
                             </button>

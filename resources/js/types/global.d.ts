@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { SiteSettings } from '@/types/content';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -11,6 +12,8 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             auth: Auth;
+            site: SiteSettings;
+            unreadMessages: number;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

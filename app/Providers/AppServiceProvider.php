@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\ServeCommand;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Console\ServeCommand as BaseServeCommand;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
@@ -15,7 +17,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->extend(
+            BaseServeCommand::class,
+            fn (): ServeCommand => new ServeCommand,
+        );
     }
 
     /**

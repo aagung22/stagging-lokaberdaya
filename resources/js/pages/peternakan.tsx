@@ -1,8 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import { Users, Building2, Milk, X } from 'lucide-react'; 
+import type { Program, ProgramActivity } from '@/types/content';
+import {
+    Users,
+    Building2,
+    Wheat,
+    TreePine,
+    Milk,
+    Wallet,
+    MapPin,
+    TrendingUp,
+    X,
+} from 'lucide-react';
 
 // --- HOOK: reveal on scroll ---
 function useReveal(options = {}) {
@@ -28,52 +39,30 @@ function useReveal(options = {}) {
     return [ref, visible] as const;
 }
 
-// Data untuk section Fattening (Penggemukan)
-const fatteningData = [
-    {
-        id: 1,
-        kota: "Kediri",
-        deskripsi: "Mendorong ketahanan pangan melalui peningkatan produktivitas dan kemandirian petani secara berkelanjutan.",
-        penjelasanPanjang: `Program Fattening (Penggemukan) di Kediri berfokus pada penguatan usaha penggemukan untuk meningkatkan bobot dan nilai jual ternak dalam waktu yang lebih singkat. 
+const statIcons = {
+    users: Users,
+    building: Building2,
+    wheat: Wheat,
+    'tree-pine': TreePine,
+    milk: Milk,
+    wallet: Wallet,
+    'map-pin': MapPin,
+    'trending-up': TrendingUp,
+} as const;
 
-Program ini mendukung peternak melalui penyediaan bakalan, pakan berkualitas, serta pendampingan teknis agar proses penggemukan berjalan optimal dan efisien.`,
-        gambar: "https://images.unsplash.com/photo-1592982537447-6f29922e2f5b?q=80&w=800&auto=format&fit=crop"
-    },
-    {
-        id: 2,
-        kota: "Sukoharjo",
-        deskripsi: "Mendorong ketahanan pangan melalui peningkatan produktivitas dan kemandirian petani secara berkelanjutan.",
-        penjelasanPanjang: `Program Fattening di Sukoharjo bertujuan untuk meningkatkan kapasitas produksi ternak melalui manajemen pakan yang tepat dan pemeliharaan yang intensif. Peternak diberikan pelatihan mengenai standar operasional penggemukan yang baik untuk menghasilkan daging berkualitas.`,
-        gambar: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?q=80&w=800&auto=format&fit=crop"
-    },
-    {
-        id: 3,
-        kota: "Lumajang",
-        deskripsi: "Mendorong ketahanan pangan melalui peningkatan produktivitas dan kemandirian petani secara berkelanjutan.",
-        penjelasanPanjang: `Di Lumajang, program Fattening diintegrasikan dengan pemanfaatan sumber daya lokal sebagai pakan ternak. Hal ini tidak hanya menekan biaya produksi tetapi juga mendukung keberlanjutan ekosistem peternakan di wilayah tersebut.`,
-        gambar: "https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=800&auto=format&fit=crop"
-    }
-];
+type Props = {
+    program: Program;
+};
 
-// Data untuk section Breeding (Pembibitan)
-const breedingData = [
-    {
-        id: 4,
-        kota: "Sidoarjo",
-        deskripsi: "Mendorong ketahanan pangan melalui peningkatan produktivitas dan kemandirian petani secara berkelanjutan.",
-        penjelasanPanjang: `Program Breeding (Pembibitan) di Sidoarjo berfokus pada pengembangan pembibitan untuk meningkatkan kualitas dan ketersediaan populasi ternak secara berkelanjutan. 
+export default function Peternakan({ program }: Props) {
+    const site = usePage().props.site ?? {};
 
-Program ini mendorong peternak untuk menghasilkan bakalan unggul melalui manajemen reproduksi, perawatan indukan, serta pendampingan teknis yang terstruktur.`,
-        gambar: "https://images.unsplash.com/photo-1592982537447-6f29922e2f5b?q=80&w=800&auto=format&fit=crop"
-    }
-];
-
-export default function Peternakan() {
     // State untuk Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedKegiatan, setSelectedKegiatan] = useState<any>(null);
+    const [selectedKegiatan, setSelectedKegiatan] =
+        useState<ProgramActivity | null>(null);
 
-    const handleOpenModal = (item: any) => {
+    const handleOpenModal = (item: ProgramActivity) => {
         setSelectedKegiatan(item);
         setIsModalOpen(true);
     };
@@ -96,9 +85,29 @@ export default function Peternakan() {
         return () => clearTimeout(t);
     }, []);
 
+    const activities = program.activities ?? [];
+
+    const fatteningData = activities.filter(
+        (activity) => (activity.category ?? '').toLowerCase() === 'fattening',
+    );
+
+    const breedingData = activities.filter(
+        (activity) => (activity.category ?? '').toLowerCase() === 'breeding',
+    );
+
+    const descriptionParagraphs = (program.hero_description ?? '')
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+    const cardDescription = (activity: ProgramActivity) =>
+        (activity.long_description ?? '').split(/\n{2,}/)[0].trim();
+
     return (
-        <div className="min-h-screen bg-[#f7ffda] font-sans text-gray-800 overflow-hidden relative">
-            <Head title="Program Peternakan - Loka Berdaya Amerta" />
+        <div className="relative min-h-screen overflow-hidden bg-[#f7ffda] font-sans text-gray-800">
+            <Head
+                title={`${program.page_title ?? program.title} - Loka Berdaya Amerta`}
+            />
 
             {/* GLOBAL KEYFRAMES UNTUK ANIMASI */}
             <style>{`
@@ -128,114 +137,129 @@ export default function Peternakan() {
             <Navbar />
 
             {/* 2. HERO SECTION */}
-            <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 bg-[#f7ffda]">
-                <div className="container mx-auto px-6 md:px-12 relative z-10 flex flex-col-reverse md:flex-row items-center gap-12 lg:gap-20">
-                    
+            <section className="relative bg-[#f7ffda] pt-32 pb-24 md:pt-40 md:pb-32">
+                <div className="relative z-10 container mx-auto flex flex-col-reverse items-center gap-12 px-6 md:flex-row md:px-12 lg:gap-20">
                     {/* KIRI: Gambar Besar (Animasi Slide Right) */}
-                    <div className={`w-full md:w-1/2 relative ${heroLoaded ? "animate-slide-right" : "opacity-0"}`}>
-                        <img 
-                            src="/images/peternakan.webp" 
-                            alt="Program Peternakan" 
-                            className="w-full h-[400px] md:h-[600px] object-cover rounded-3xl rounded-tr-[6rem] shadow-lg border-4 border-white"
+                    <div
+                        className={`relative w-full md:w-1/2 ${heroLoaded ? 'animate-slide-right' : 'opacity-0'}`}
+                    >
+                        <img
+                            src={
+                                program.hero_image_url ??
+                                '/images/peternakan.webp'
+                            }
+                            alt={program.title}
+                            className="h-[400px] w-full rounded-3xl rounded-tr-[6rem] border-4 border-white object-cover shadow-lg md:h-[600px]"
                         />
                     </div>
 
                     {/* KANAN: Teks Penjelasan (Animasi Slide Left) */}
-                    <div className={`w-full md:w-1/2 flex flex-col justify-center ${heroLoaded ? "animate-slide-left" : "opacity-0"}`}>
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-8">
-                            Program Peternakan
+                    <div
+                        className={`flex w-full flex-col justify-center md:w-1/2 ${heroLoaded ? 'animate-slide-left' : 'opacity-0'}`}
+                    >
+                        <h1 className="mb-8 text-3xl leading-tight font-bold text-gray-900 md:text-4xl lg:text-5xl">
+                            {program.page_title ?? program.title}
                         </h1>
-                        
-                        <div className="space-y-5 text-gray-600 leading-relaxed text-justify md:text-left">
-                            <p>
-                                Program Peternakan berfokus pada penguatan usaha ternak masyarakat melalui peningkatan kapasitas produksi dan pengelolaan usaha yang lebih terstruktur. Program ini hadir sebagai solusi atas keterbatasan modal, pengetahuan, dan akses pasar yang masih menjadi tantangan utama para peternak.
-                            </p>
-                            <p>
-                                Melalui dukungan modal usaha, pendampingan teknis, serta penguatan manajemen peternakan, masyarakat didorong untuk meningkatkan produktivitas dan kualitas hasil ternak. Program juga membuka akses pasar dan membangun skema kemitraan yang lebih adil dan memiliki kepastian penyerapan hasil.
-                            </p>
-                            <p>
-                                Dengan pendekatan ini, program mendorong peningkatan pendapatan, memperkuat posisi tawar peternak, serta menciptakan usaha peternakan yang berkelanjutan dan berdaya saing.
-                            </p>
+
+                        <div className="space-y-5 text-justify leading-relaxed text-gray-600 md:text-left">
+                            {descriptionParagraphs.map((paragraph, index) => (
+                                <p key={index}>{paragraph}</p>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* 3. STATS BAR (Animasi Fade Up) */}
-            <div ref={statsRef} className="container mx-auto px-6 md:px-12 relative z-20 -mt-20 md:-mt-24">
-                <div className={`bg-white rounded-3xl shadow-xl p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border border-gray-100 ${statsVisible ? "animate-fade-up delay-200" : "opacity-0"}`}>
-                    
-                    {/* Stat 1 */}
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <Users size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">100+</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Penerima Manfaat</p>
-                        </div>
-                    </div>
-                    
-                    <div className="hidden md:block w-px h-16 bg-gray-200"></div>
-                    
-                    {/* Stat 2 */}
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <Building2 size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">4 Kota</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Titik Pemberdayaan</p>
-                        </div>
-                    </div>
+            {(program.stats ?? []).length > 0 && (
+                <div
+                    ref={statsRef}
+                    className="relative z-20 container mx-auto -mt-20 px-6 md:-mt-24 md:px-12"
+                >
+                    <div
+                        className={`flex flex-col items-center justify-between gap-8 rounded-3xl border border-gray-100 bg-white p-8 shadow-xl md:flex-row md:p-10 ${statsVisible ? 'animate-fade-up delay-200' : 'opacity-0'}`}
+                    >
+                        {(program.stats ?? []).map((stat, index) => {
+                            const Icon =
+                                statIcons[
+                                    stat.icon as keyof typeof statIcons
+                                ] ?? Users;
 
-                    <div className="hidden md:block w-px h-16 bg-gray-200"></div>
-                    
-                    {/* Stat 3 */}
-                    <div className="flex items-start gap-4 w-full md:w-1/3">
-                        <div className="w-16 h-16 bg-[#fce4d1] rounded-full flex items-center justify-center flex-shrink-0 text-[#d97736]">
-                            <Milk size={32} />
-                        </div>
-                        <div>
-                            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">150 Ton</h3>
-                            <p className="text-sm text-gray-500 leading-tight">Hasil Peternakan</p>
-                        </div>
-                    </div>
+                            return (
+                                <div key={stat.id} className="contents">
+                                    {index > 0 && (
+                                        <div className="hidden h-16 w-px bg-gray-200 md:block"></div>
+                                    )}
 
+                                    <div className="flex w-full items-start gap-4 md:w-1/3">
+                                        <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-[#fce4d1] text-[#d97736]">
+                                            <Icon size={32} />
+                                        </div>
+                                        <div>
+                                            <h3 className="mb-1 text-xl font-bold text-gray-900 md:text-2xl">
+                                                {stat.value}
+                                            </h3>
+                                            <p className="text-sm leading-tight text-gray-500">
+                                                {stat.label}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* 4. SECTION FATTENING */}
-            <section className="container mx-auto px-6 md:px-12 py-16 mt-12">
-                <div ref={fatteningHeaderRef} className={`mb-10 ${fatteningHeaderVisible ? "animate-fade-up" : "opacity-0"}`}>
-                    <h2 className="text-3xl md:text-4xl font-bold text-[#4b552a] mb-4">Fattening</h2>
-                    <p className="text-gray-700 leading-relaxed max-w-4xl">
-                        Program Fattening Domba berfokus pada penguatan usaha penggemukan untuk meningkatkan bobot dan nilai jual ternak dalam waktu yang lebih singkat. Program ini mendukung peternak melalui penyediaan bakalan, pakan berkualitas, serta pendampingan teknis agar proses penggemukan berjalan optimal dan efisien.
+            <section className="container mx-auto mt-12 px-6 py-16 md:px-12">
+                <div
+                    ref={fatteningHeaderRef}
+                    className={`mb-10 ${fatteningHeaderVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                >
+                    <h2 className="mb-4 text-3xl font-bold text-[#4b552a] md:text-4xl">
+                        Fattening
+                    </h2>
+                    <p className="max-w-4xl leading-relaxed text-gray-700">
+                        {site.peternakan_fattening_description ??
+                            'Program Fattening Domba berfokus pada penguatan usaha penggemukan untuk meningkatkan bobot dan nilai jual ternak dalam waktu yang lebih singkat. Program ini mendukung peternak melalui penyediaan bakalan, pakan berkualitas, serta pendampingan teknis agar proses penggemukan berjalan optimal dan efisien.'}
                     </p>
                 </div>
 
-                <div ref={fatteningGridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div
+                    ref={fatteningGridRef}
+                    className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+                >
                     {fatteningData.map((item, index) => (
-                        <div 
-                            key={item.id} 
-                            className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-lg transition-all duration-300 ${fatteningGridVisible ? "animate-fade-up" : "opacity-0"}`}
-                            style={{ animationDelay: fatteningGridVisible ? `${index * 0.1}s` : '0s' }}
+                        <div
+                            key={item.id}
+                            className={`flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg ${fatteningGridVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                            style={{
+                                animationDelay: fatteningGridVisible
+                                    ? `${index * 0.1}s`
+                                    : '0s',
+                            }}
                         >
                             <div className="h-56 w-full overflow-hidden">
-                                <img 
-                                    src={item.gambar} 
-                                    alt={`Kegiatan di ${item.kota}`} 
-                                    className="w-full h-full object-cover hover:scale-105 transition duration-500"
+                                <img
+                                    src={
+                                        item.image_url ??
+                                        '/images/peternakan.webp'
+                                    }
+                                    alt={`Kegiatan di ${item.city}`}
+                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
                                 />
                             </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.kota}</h3>
-                                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
-                                    {item.deskripsi}
+                            <div className="flex flex-grow flex-col p-6">
+                                <h3 className="mb-3 text-xl font-bold text-gray-900">
+                                    {item.city}
+                                </h3>
+                                <p className="mb-6 flex-grow text-sm leading-relaxed text-gray-600">
+                                    {cardDescription(item)}
                                 </p>
-                                <button 
+                                <button
                                     onClick={() => handleOpenModal(item)}
-                                    className="w-full bg-[#4b552a] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a4220] transition mt-auto cursor-pointer"
+                                    className="mt-auto w-full cursor-pointer rounded-lg bg-[#4b552a] py-2.5 text-sm font-medium text-white transition hover:bg-[#3a4220]"
                                 >
                                     Selengkapnya
                                 </button>
@@ -246,37 +270,55 @@ export default function Peternakan() {
             </section>
 
             {/* 5. SECTION BREEDING */}
-            <section className="container mx-auto px-6 md:px-12 pb-24">
-                <div ref={breedingHeaderRef} className={`mb-10 ${breedingHeaderVisible ? "animate-fade-up" : "opacity-0"}`}>
-                    <h2 className="text-3xl md:text-4xl font-bold text-[#4b552a] mb-4">Breeding</h2>
-                    <p className="text-gray-700 leading-relaxed max-w-4xl">
-                        Program Breeding Domba berfokus pada pengembangan pembibitan untuk meningkatkan kualitas dan ketersediaan populasi ternak secara berkelanjutan. Program ini mendorong peternak untuk menghasilkan bakalan unggul melalui manajemen reproduksi, perawatan indukan, serta pendampingan teknis yang terstruktur.
+            <section className="container mx-auto px-6 pb-24 md:px-12">
+                <div
+                    ref={breedingHeaderRef}
+                    className={`mb-10 ${breedingHeaderVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                >
+                    <h2 className="mb-4 text-3xl font-bold text-[#4b552a] md:text-4xl">
+                        Breeding
+                    </h2>
+                    <p className="max-w-4xl leading-relaxed text-gray-700">
+                        {site.peternakan_breeding_description ??
+                            'Program Breeding Domba berfokus pada pengembangan pembibitan untuk meningkatkan kualitas dan ketersediaan populasi ternak secara berkelanjutan. Program ini mendorong peternak untuk menghasilkan bakalan unggul melalui manajemen reproduksi, perawatan indukan, serta pendampingan teknis yang terstruktur.'}
                     </p>
                 </div>
 
                 {/* Grid 3 Kolom */}
-                <div ref={breedingGridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div
+                    ref={breedingGridRef}
+                    className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+                >
                     {breedingData.map((item, index) => (
-                        <div 
-                            key={item.id} 
-                            className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col hover:shadow-lg transition-all duration-300 ${breedingGridVisible ? "animate-fade-up" : "opacity-0"}`}
-                            style={{ animationDelay: breedingGridVisible ? `${index * 0.1}s` : '0s' }}
+                        <div
+                            key={item.id}
+                            className={`flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg ${breedingGridVisible ? 'animate-fade-up' : 'opacity-0'}`}
+                            style={{
+                                animationDelay: breedingGridVisible
+                                    ? `${index * 0.1}s`
+                                    : '0s',
+                            }}
                         >
                             <div className="h-56 w-full overflow-hidden">
-                                <img 
-                                    src={item.gambar} 
-                                    alt={`Kegiatan di ${item.kota}`} 
-                                    className="w-full h-full object-cover hover:scale-105 transition duration-500"
+                                <img
+                                    src={
+                                        item.image_url ??
+                                        '/images/peternakan.webp'
+                                    }
+                                    alt={`Kegiatan di ${item.city}`}
+                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
                                 />
                             </div>
-                            <div className="p-6 flex flex-col flex-grow">
-                                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.kota}</h3>
-                                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
-                                    {item.deskripsi}
+                            <div className="flex flex-grow flex-col p-6">
+                                <h3 className="mb-3 text-xl font-bold text-gray-900">
+                                    {item.city}
+                                </h3>
+                                <p className="mb-6 flex-grow text-sm leading-relaxed text-gray-600">
+                                    {cardDescription(item)}
                                 </p>
-                                <button 
+                                <button
                                     onClick={() => handleOpenModal(item)}
-                                    className="w-full bg-[#4b552a] text-white py-2.5 rounded-lg text-sm font-medium hover:bg-[#3a4220] transition mt-auto cursor-pointer"
+                                    className="mt-auto w-full cursor-pointer rounded-lg bg-[#4b552a] py-2.5 text-sm font-medium text-white transition hover:bg-[#3a4220]"
                                 >
                                     Selengkapnya
                                 </button>
@@ -288,29 +330,28 @@ export default function Peternakan() {
 
             {/* 6. MODAL / POP-UP PENJELASAN */}
             {isModalOpen && selectedKegiatan && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300">
-                        
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#f7ffda]">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                    <div className="flex max-h-[90vh] w-full max-w-3xl animate-in flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-300 fade-in zoom-in">
+                        <div className="flex items-center justify-between border-b border-gray-100 bg-[#f7ffda] p-6">
                             <h3 className="text-2xl font-bold text-[#4b552a]">
-                                Peternakan di {selectedKegiatan.kota}
+                                Peternakan di {selectedKegiatan.city}
                             </h3>
-                            <button 
+                            <button
                                 onClick={handleCloseModal}
-                                className="p-2 bg-white rounded-full text-gray-500 hover:text-red-500 hover:bg-red-50 transition shadow-sm cursor-pointer"
+                                className="cursor-pointer rounded-full bg-white p-2 text-gray-500 shadow-sm transition hover:bg-red-50 hover:text-red-500"
                             >
                                 <X size={24} />
                             </button>
                         </div>
 
-                        <div className="p-8 overflow-y-auto text-gray-700 leading-relaxed text-justify whitespace-pre-wrap">
-                            {selectedKegiatan.penjelasanPanjang}
+                        <div className="overflow-y-auto p-8 text-justify leading-relaxed whitespace-pre-wrap text-gray-700">
+                            {selectedKegiatan.long_description}
                         </div>
 
-                        <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50">
-                            <button 
+                        <div className="flex justify-end border-t border-gray-100 bg-gray-50 p-4">
+                            <button
                                 onClick={handleCloseModal}
-                                className="bg-[#4b552a] text-white px-8 py-2.5 rounded-lg font-medium hover:bg-[#3a4220] transition cursor-pointer"
+                                className="cursor-pointer rounded-lg bg-[#4b552a] px-8 py-2.5 font-medium text-white transition hover:bg-[#3a4220]"
                             >
                                 Tutup
                             </button>

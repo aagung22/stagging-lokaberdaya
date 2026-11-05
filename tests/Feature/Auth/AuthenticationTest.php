@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Database\Seeders\AdminUserSeeder;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
@@ -19,7 +20,21 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('home', absolute: false));
+});
+
+test('the seeded admin can log in and reach the admin dashboard', function () {
+    $this->seed(AdminUserSeeder::class);
+
+    $response = $this->post(route('login.store'), [
+        'email' => 'admin@lokaberdaya.com',
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect('/admin');
+
+    $this->get('/admin')->assertOk();
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {

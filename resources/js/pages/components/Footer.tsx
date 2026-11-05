@@ -1,5 +1,6 @@
 // resources/js/components/Footer.tsx
 import { useEffect, useRef, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { MapPin, Phone, Mail } from 'lucide-react';
 
 const footerStyles = `
@@ -81,6 +82,7 @@ const footerStyles = `
 export default function Footer() {
     const footerRef = useRef<HTMLElement>(null);
     const [visible, setVisible] = useState(false);
+    const site = usePage().props.site ?? {};
 
     useEffect(() => {
         const el = footerRef.current;
@@ -100,7 +102,7 @@ export default function Footer() {
                     }
                 });
             },
-            { threshold: 0.2 }
+            { threshold: 0.2 },
         );
 
         observer.observe(el);
@@ -108,13 +110,17 @@ export default function Footer() {
     }, []);
 
     const contacts = [
-        { icon: Phone, text: '081 330003450' },
-        { icon: Mail, text: 'info@lokaberdaya.com' },
+        { icon: Phone, text: site.phone ?? '081 330003450' },
+        { icon: Mail, text: site.email ?? 'info@lokaberdaya.com' },
         {
             icon: MapPin,
-            text: 'Jl. Sarirogo No.1, Sari Rogo, Kec. Sidoarjo, Kabupaten Sidoarjo, Jawa Timur 61234',
+            text:
+                site.address ??
+                'Jl. Sarirogo No.1, Sari Rogo, Kec. Sidoarjo, Kabupaten Sidoarjo, Jawa Timur 61234',
         },
     ];
+
+    const siteName = site.site_name ?? 'Loka Berdaya Amerta';
 
     return (
         <>
@@ -123,32 +129,33 @@ export default function Footer() {
 
             <footer
                 ref={footerRef}
-                className={`bg-[#4b552a] text-white pt-16 pb-8 rounded-t-[3rem] overflow-hidden ${
+                className={`overflow-hidden rounded-t-[3rem] bg-[#4b552a] pt-16 pb-8 text-white ${
                     visible ? 'footer-visible' : ''
                 }`}
             >
                 <div className="container mx-auto px-6 md:px-12">
-                    <div className="flex flex-col md:flex-row justify-between gap-12 mb-12">
+                    <div className="mb-12 flex flex-col justify-between gap-12 md:flex-row">
                         {/* Kiri: Logo & Deskripsi */}
                         <div className="w-full md:w-1/2">
                             <div className="flex items-center">
                                 <img
-                                    src="/images/logo lba.webp"
-                                    alt="Logo Loka Berdaya Amerta"
-                                    className="footer-logo footer-animate footer-animate--left h-16 md:h-28 w-auto object-contain"
+                                    src={site.logo ?? '/images/logo lba.webp'}
+                                    alt={`Logo ${siteName}`}
+                                    className="footer-logo footer-animate footer-animate--left h-16 w-auto object-contain md:h-28"
                                     onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                     }}
                                 />
                             </div>
 
-                            <p className="footer-animate footer-animate--up footer-animate--delay-1 text-gray-300 leading-relaxed mb-6 max-w-md -mt-2 md:-mt-4">
-                                Loka Berdaya Amerta adalah lembaga pionir dalam pemberdayaan masyarakat yang fokus pada peningkatan keterampilan, ekonomi, pendidikan, dan keberlanjutan lingkungan melalui kolaborasi lintas sektor.
+                            <p className="footer-animate footer-animate--up footer-animate--delay-1 -mt-2 mb-6 max-w-md leading-relaxed text-gray-300 md:-mt-4">
+                                {site.footer_description ??
+                                    'Loka Berdaya Amerta adalah lembaga pionir dalam pemberdayaan masyarakat yang fokus pada peningkatan keterampilan, ekonomi, pendidikan, dan keberlanjutan lingkungan melalui kolaborasi lintas sektor.'}
                             </p>
                         </div>
 
                         {/* Kanan: Kontak */}
-                        <div className="w-full md:w-1/3 flex flex-col gap-4">
+                        <div className="flex w-full flex-col gap-4 md:w-1/3">
                             {contacts.map((item, i) => {
                                 const Icon = item.icon;
                                 return (
@@ -160,7 +167,9 @@ export default function Footer() {
                                             className="footer-icon mt-1 text-[#f7ffda]"
                                             size={20}
                                         />
-                                        <p className="text-gray-300">{item.text}</p>
+                                        <p className="text-gray-300">
+                                            {item.text}
+                                        </p>
                                     </div>
                                 );
                             })}
@@ -168,15 +177,22 @@ export default function Footer() {
                     </div>
 
                     {/* Garis Bawah & Copyright */}
-                    <div className="footer-animate footer-animate--up footer-animate--delay-5 border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="footer-animate footer-animate--up footer-animate--delay-5 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 md:flex-row">
                         <p className="text-sm text-gray-400">
-                            © {new Date().getFullYear()} Loka Berdaya Amerta. All rights reserved.
+                            © {new Date().getFullYear()} {siteName}. All rights
+                            reserved.
                         </p>
                         <div className="flex gap-4 text-sm text-gray-400">
-                            <a href="#" className="footer-link hover:text-white">
+                            <a
+                                href="#"
+                                className="footer-link hover:text-white"
+                            >
                                 Privacy Policy
                             </a>
-                            <a href="#" className="footer-link hover:text-white">
+                            <a
+                                href="#"
+                                className="footer-link hover:text-white"
+                            >
                                 Terms of Service
                             </a>
                         </div>

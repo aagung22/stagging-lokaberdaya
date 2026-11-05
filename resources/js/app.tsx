@@ -15,13 +15,13 @@ void createInertiaApp({
             case name === 'welcome':
             case name === 'landing':
             case name === 'about':
-            case name === 'contact': 
+            case name === 'contact':
             case name === 'agriculture':
             case name === 'agroforestry':
             case name === 'peternakan':
             case name === 'umkm':
             case name === 'blog':
-             // <--- TAMBAHAN BARU: Agar landing page bebas sidebar
+                // <--- TAMBAHAN BARU: Agar landing page bebas sidebar
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;

@@ -1,7 +1,8 @@
-import { Head, Link } from "@inertiajs/react";
-import { useState, useEffect, useRef } from "react";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useState, useEffect, useRef } from 'react';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import type { HeroSlide, Partner, Program, Testimonial } from '@/types/content';
 import {
     Users,
     Leaf,
@@ -12,7 +13,27 @@ import {
     Send,
     User,
     ArrowRight,
-} from "lucide-react";
+} from 'lucide-react';
+
+type LandingStat = {
+    value: string;
+    label: string;
+    icon: string;
+};
+
+type Props = {
+    heroSlides: HeroSlide[];
+    programs: Program[];
+    testimonials: Testimonial[];
+    partners: Partner[];
+    landingStats: LandingStat[];
+};
+
+const statIcons = {
+    users: Users,
+    leaf: Leaf,
+    building: Building2,
+} as const;
 
 // --- HOOK: reveal on scroll (Dibuat Generic agar bisa dipakai di div/span) ---
 function useReveal<T extends HTMLElement = HTMLDivElement>(options = {}) {
@@ -39,7 +60,7 @@ function useReveal<T extends HTMLElement = HTMLDivElement>(options = {}) {
 }
 
 // --- KOMPONEN: animated counter ---
-function Counter({ end, duration = 1500 }: { end: number, duration?: number }) {
+function Counter({ end, duration = 1500 }: { end: number; duration?: number }) {
     const [value, setValue] = useState(0);
     const [ref, visible] = useReveal<HTMLSpanElement>();
 
@@ -59,26 +80,49 @@ function Counter({ end, duration = 1500 }: { end: number, duration?: number }) {
     return <span ref={ref}>{value}</span>;
 }
 
-export default function Landing() {
+export default function Landing({
+    heroSlides,
+    programs,
+    testimonials,
+    partners,
+    landingStats,
+}: Props) {
     // --- LOGIKA SLIDER HERO ---
-    const heroImages = [
-        "/images/landing-umkm.webp",
-        "/images/landing-peternakan.webp",
-        "/images/agriculture.webp",
-        "/images/agroforestry.webp",
-    ];
+    const site = usePage().props.site ?? {};
+
+    const heroImages = heroSlides
+        .map((slide) => slide.image_url)
+        .filter((image): image is string => Boolean(image));
+
+    const images =
+        heroImages.length > 0
+            ? heroImages
+            : [
+                  '/images/landing-umkm.webp',
+                  '/images/landing-peternakan.webp',
+                  '/images/agriculture.webp',
+                  '/images/agroforestry.webp',
+              ];
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentImageIndex((prevIndex) =>
-                prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1,
+                prevIndex === images.length - 1 ? 0 : prevIndex + 1,
             );
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [heroImages.length]);
+    }, [images.length]);
+
+    const contactForm = useForm({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+    });
 
     // --- REVEAL REFS ---
     const [aboutRef, aboutVisible] = useReveal();
@@ -150,69 +194,80 @@ export default function Landing() {
             <Navbar />
 
             {/* 2. HERO SECTION - FULL SCREEN */}
-            <section className="relative w-full h-screen overflow-hidden">
-                <div className="relative w-full h-full">
-                    {heroImages.map((img, index) => (
+            <section className="relative h-screen w-full overflow-hidden">
+                <div className="relative h-full w-full">
+                    {images.map((img, index) => (
                         <img
                             key={index}
                             src={img}
                             alt={`Hero Background ${index + 1}`}
-                            className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ease-in-out ${
+                            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-1000 ease-in-out ${
                                 index === currentImageIndex
-                                    ? "opacity-100 z-10 scale-105"
-                                    : "opacity-0 z-0"
+                                    ? 'z-10 scale-105 opacity-100'
+                                    : 'z-0 opacity-0'
                             }`}
                             style={{
-                                transition: "opacity 1s ease-in-out, transform 6s ease-out",
-                                transform: index === currentImageIndex ? "scale(1.05)" : "scale(1)",
+                                transition:
+                                    'opacity 1s ease-in-out, transform 6s ease-out',
+                                transform:
+                                    index === currentImageIndex
+                                        ? 'scale(1.05)'
+                                        : 'scale(1)',
                             }}
                         />
                     ))}
 
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent z-20"></div>
+                    <div className="absolute inset-0 z-20 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
 
-                    <div className="absolute inset-0 z-30 container mx-auto px-6 md:px-12 flex flex-col items-start justify-center text-left text-white h-full pt-24 md:pt-28">
+                    <div className="absolute inset-0 z-30 container mx-auto flex h-full flex-col items-start justify-center px-6 pt-24 text-left text-white md:px-12 md:pt-28">
                         {/* Garis aksen kecil */}
                         <div
-                            className={`h-1 bg-[#f7ffda] mb-6 rounded-full ${
-                                heroLoaded ? "animate-grow" : "w-0"
+                            className={`mb-6 h-1 rounded-full bg-[#f7ffda] ${
+                                heroLoaded ? 'animate-grow' : 'w-0'
                             }`}
-                            style={{ width: heroLoaded ? "4rem" : "0" }}
+                            style={{ width: heroLoaded ? '4rem' : '0' }}
                         ></div>
 
                         <h1
-                            className={`text-3xl md:text-4xl lg:text-5xl font-bold leading-tight max-w-3xl mb-4 drop-shadow-xl ${
-                                heroLoaded ? "animate-fade-up delay-100" : "opacity-0"
+                            className={`mb-4 max-w-3xl text-3xl leading-tight font-bold drop-shadow-xl md:text-4xl lg:text-5xl ${
+                                heroLoaded
+                                    ? 'animate-fade-up delay-100'
+                                    : 'opacity-0'
                             }`}
                         >
-                            Tumbuhkan Kesejahteraan
+                            {site.hero_title ?? 'Tumbuhkan Kesejahteraan'}
                             <br />
                             <span className="text-[#f7ffda]">
-                                dengan Pemberdayaan
+                                {site.hero_title_accent ??
+                                    'dengan Pemberdayaan'}
                             </span>
                         </h1>
 
                         <p
-                            className={`text-base md:text-lg lg:text-xl font-normal max-w-xl text-gray-100 drop-shadow-md leading-relaxed ${
-                                heroLoaded ? "animate-fade-up delay-300" : "opacity-0"
+                            className={`max-w-xl text-base leading-relaxed font-normal text-gray-100 drop-shadow-md md:text-lg lg:text-xl ${
+                                heroLoaded
+                                    ? 'animate-fade-up delay-300'
+                                    : 'opacity-0'
                             }`}
                         >
-                            Budayakan Potensi Lokal untuk Tumbuhkan Kesejahteraan
+                            {site.hero_subtitle ?? site.site_tagline ?? ''}
                         </p>
 
                         <div
-                            className={`flex gap-3 mt-8 ${
-                                heroLoaded ? "animate-fade-up delay-500" : "opacity-0"
+                            className={`mt-8 flex gap-3 ${
+                                heroLoaded
+                                    ? 'animate-fade-up delay-500'
+                                    : 'opacity-0'
                             }`}
                         >
-                            {heroImages.map((_, index) => (
+                            {images.map((_, index) => (
                                 <button
                                     key={index}
                                     onClick={() => setCurrentImageIndex(index)}
                                     className={`h-3 rounded-full transition-all duration-300 ${
                                         index === currentImageIndex
-                                            ? "bg-[#f7ffda] w-8"
-                                            : "bg-white/50 hover:bg-white w-3"
+                                            ? 'w-8 bg-[#f7ffda]'
+                                            : 'w-3 bg-white/50 hover:bg-white'
                                     }`}
                                     aria-label={`Go to slide ${index + 1}`}
                                 />
@@ -224,104 +279,109 @@ export default function Landing() {
 
             {/* 3. STATS BAR */}
             <div
-                className={`container mx-auto px-6 md:px-12 relative z-40 mt-12 md:mt-16 ${
-                    heroLoaded ? "animate-fade-up delay-700" : "opacity-0"
+                className={`relative z-40 container mx-auto mt-12 px-6 md:mt-16 md:px-12 ${
+                    heroLoaded ? 'animate-fade-up delay-700' : 'opacity-0'
                 }`}
             >
-                <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col md:flex-row justify-around items-center gap-6 border border-gray-100">
-                    <div className="flex flex-col items-center text-center gap-1 transition-transform duration-300 hover:-translate-y-1">
-                        <div className="p-3 bg-[#f7ffda] rounded-full text-[#4b552a] mb-1">
-                            <Users size={24} />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900">
-                            <Counter end={491} />
-                        </h3>
-                        <p className="text-xs text-gray-500 font-medium">
-                            Penerima Manfaat
-                        </p>
-                    </div>
-                    <div className="hidden md:block w-px h-12 bg-gray-200"></div>
-                    <div className="flex flex-col items-center text-center gap-1 transition-transform duration-300 hover:-translate-y-1">
-                        <div className="p-3 bg-[#f7ffda] rounded-full text-[#4b552a] mb-1">
-                            <Leaf size={24} />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900">
-                            <Counter end={4} />
-                        </h3>
-                        <p className="text-xs text-gray-500 font-medium">
-                            Program
-                        </p>
-                    </div>
-                    <div className="hidden md:block w-px h-12 bg-gray-200"></div>
-                    <div className="flex flex-col items-center text-center gap-1 transition-transform duration-300 hover:-translate-y-1">
-                        <div className="p-3 bg-[#f7ffda] rounded-full text-[#4b552a] mb-1">
-                            <Building2 size={24} />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900">
-                            <Counter end={28} />
-                        </h3>
-                        <p className="text-xs text-gray-500 font-medium">
-                            Titik Pemberdayaan
-                        </p>
-                    </div>
+                <div className="flex flex-col items-center justify-around gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-xl md:flex-row">
+                    {landingStats.map((stat, index) => {
+                        const Icon =
+                            statIcons[stat.icon as keyof typeof statIcons] ??
+                            Users;
+
+                        return (
+                            <div
+                                key={`${stat.label}-${index}`}
+                                className="contents"
+                            >
+                                {index > 0 && (
+                                    <div className="hidden h-12 w-px bg-gray-200 md:block"></div>
+                                )}
+                                <div className="flex flex-col items-center gap-1 text-center transition-transform duration-300 hover:-translate-y-1">
+                                    <div className="mb-1 rounded-full bg-[#f7ffda] p-3 text-[#4b552a]">
+                                        <Icon size={24} />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-gray-900">
+                                        <Counter
+                                            end={
+                                                Number.parseInt(
+                                                    stat.value.replace(
+                                                        /\D/g,
+                                                        '',
+                                                    ),
+                                                    10,
+                                                ) || 0
+                                            }
+                                        />
+                                    </h3>
+                                    <p className="text-xs font-medium text-gray-500">
+                                        {stat.label}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
             {/* 4. TENTANG KAMI */}
-            <section className="container mx-auto px-6 md:px-12 py-24">
-                <div className="flex flex-col md:flex-row items-center gap-16">
+            <section className="container mx-auto px-6 py-24 md:px-12">
+                <div className="flex flex-col items-center gap-16 md:flex-row">
                     <div
                         ref={aboutRef}
-                        className={`w-full md:w-1/2 relative ${
-                            aboutVisible ? "animate-slide-left" : "opacity-0"
+                        className={`relative w-full md:w-1/2 ${
+                            aboutVisible ? 'animate-slide-left' : 'opacity-0'
                         }`}
                     >
-                        <div className="relative z-10 rounded-[2rem] overflow-hidden shadow-2xl group">
+                        <div className="group relative z-10 overflow-hidden rounded-[2rem] shadow-2xl">
                             <img
-                                src="/images/halamantentang.webp"
+                                src={
+                                    site.about_image ??
+                                    '/images/halamantentang.webp'
+                                }
                                 alt="Petani Sawah"
-                                className="object-cover w-full h-[400px] md:h-[500px] transition-transform duration-700 group-hover:scale-105"
+                                className="h-[400px] w-full object-cover transition-transform duration-700 group-hover:scale-105 md:h-[500px]"
                             />
                         </div>
-                        <div className="absolute -bottom-8 -right-8 bg-[#9c8e4d] text-white p-6 md:p-8 rounded-2xl shadow-xl flex flex-col items-center justify-center min-w-[120px] md:min-w-[150px] z-20 animate-float">
-                            <span className="text-4xl md:text-5xl font-bold">
-                                30
+                        <div className="animate-float absolute -right-8 -bottom-8 z-20 flex min-w-[120px] flex-col items-center justify-center rounded-2xl bg-[#9c8e4d] p-6 text-white shadow-xl md:min-w-[150px] md:p-8">
+                            <span className="text-4xl font-bold md:text-5xl">
+                                {site.about_years ?? '30'}
                             </span>
-                            <span className="text-xs md:text-sm font-medium text-center leading-tight mt-1">
-                                Tahun
-                                <br />
-                                Berkarya
+                            <span className="mt-1 text-center text-xs leading-tight font-medium md:text-sm">
+                                {(site.about_years_label ?? 'Tahun Berkarya')
+                                    .split(' ')
+                                    .map((word, index) => (
+                                        <span key={index}>
+                                            {word}
+                                            <br />
+                                        </span>
+                                    ))}
                             </span>
                         </div>
-                        <div className="absolute -top-4 -left-4 w-24 h-24 border-t-4 border-l-4 border-[#4b552a] rounded-tl-3xl z-0"></div>
+                        <div className="absolute -top-4 -left-4 z-0 h-24 w-24 rounded-tl-3xl border-t-4 border-l-4 border-[#4b552a]"></div>
                     </div>
 
                     <div
-                        className={`w-full md:w-1/2 mt-8 md:mt-0 ${
-                            aboutVisible ? "animate-slide-right" : "opacity-0"
+                        className={`mt-8 w-full md:mt-0 md:w-1/2 ${
+                            aboutVisible ? 'animate-slide-right' : 'opacity-0'
                         }`}
                     >
-                        <span className="text-[#4b552a] font-bold tracking-wider uppercase text-sm mb-3 flex items-center gap-2">
-                            <span className="w-8 h-[2px] bg-[#4b552a]"></span>{" "}
-                            Tentang Kami
+                        <span className="mb-3 flex items-center gap-2 text-sm font-bold tracking-wider text-[#4b552a] uppercase">
+                            <span className="h-[2px] w-8 bg-[#4b552a]"></span>{' '}
+                            {site.about_eyebrow ?? 'Tentang Kami'}
                         </span>
-                        <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-                            Sekilas Tentang <br /> Loka Berdaya Amerta
+                        <h2 className="mb-6 text-3xl leading-tight font-bold text-gray-900 md:text-5xl">
+                            {site.about_title ??
+                                'Sekilas Tentang Loka Berdaya Amerta'}
                         </h2>
-                        <p className="text-gray-600 leading-relaxed mb-8 text-base md:text-lg">
-                            Sebuah lembaga yang berkomitmen untuk mendorong
-                            pemberdayaan masyarakat, inovasi, dan pembangunan
-                            berkelanjutan. Loka Berdaya Amerta adalah lembaga
-                            pionir dalam pemberdayaan masyarakat yang fokus pada
-                            peningkatan keterampilan, ekonomi, pendidikan, dan
-                            keberlanjutan lingkungan melalui kolaborasi lintas
-                            sektor.
+                        <p className="mb-8 text-base leading-relaxed text-gray-600 md:text-lg">
+                            {site.about_text ?? ''}
                         </p>
                         <Link
                             href="/tentang"
-                            className="flex items-center gap-2 text-[#4b552a] font-bold hover:gap-4 transition-all duration-300 group w-max cursor-pointer"
+                            className="group flex w-max cursor-pointer items-center gap-2 font-bold text-[#4b552a] transition-all duration-300 hover:gap-4"
                         >
-                            Pelajari Lebih Lanjut{" "}
+                            Pelajari Lebih Lanjut{' '}
                             <ArrowRight
                                 size={20}
                                 className="transition-transform duration-300 group-hover:translate-x-1"
@@ -332,51 +392,42 @@ export default function Landing() {
             </section>
 
             {/* 5. VISI & MISI */}
-            <section className="container mx-auto px-6 md:px-12 pb-24">
+            <section className="container mx-auto px-6 pb-24 md:px-12">
                 <div
                     ref={visiRef}
-                    className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                    className="grid grid-cols-1 gap-8 md:grid-cols-2"
                 >
                     <div
-                        className={`bg-[#4b552a] p-8 md:p-10 rounded-3xl shadow-lg text-white relative overflow-hidden group transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${
-                            visiVisible ? "animate-fade-up" : "opacity-0"
+                        className={`group relative overflow-hidden rounded-3xl bg-[#4b552a] p-8 text-white shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl md:p-10 ${
+                            visiVisible ? 'animate-fade-up' : 'opacity-0'
                         }`}
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-125"></div>
-                        <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-bl-full bg-white/10 transition-transform group-hover:scale-125"></div>
+                        <h3 className="mb-4 flex items-center gap-3 text-2xl font-bold">
                             <Leaf size={28} /> Visi
                         </h3>
-                        <p className="text-gray-100 leading-relaxed text-base md:text-lg relative z-10">
-                            Menjadi lembaga pionir dalam pemberdayaan
-                            masyarakat, menciptakan lingkungan yang berdaya,
-                            berdamai, dan berkelanjutan.
+                        <p className="relative z-10 text-base leading-relaxed text-gray-100 md:text-lg">
+                            {site.vision ?? ''}
                         </p>
                     </div>
                     <div
-                        className={`bg-[#eff5da] p-8 md:p-10 rounded-3xl shadow-sm border border-[#dce5c0] relative overflow-hidden group transition-all duration-500 hover:shadow-xl hover:-translate-y-2 ${
-                            visiVisible ? "animate-fade-up delay-200" : "opacity-0"
+                        className={`group relative overflow-hidden rounded-3xl border border-[#dce5c0] bg-[#eff5da] p-8 shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl md:p-10 ${
+                            visiVisible
+                                ? 'animate-fade-up delay-200'
+                                : 'opacity-0'
                         }`}
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#4b552a]/5 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-125"></div>
-                        <h3 className="text-2xl font-bold text-[#4b552a] mb-4 flex items-center gap-3">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-bl-full bg-[#4b552a]/5 transition-transform group-hover:scale-125"></div>
+                        <h3 className="mb-4 flex items-center gap-3 text-2xl font-bold text-[#4b552a]">
                             <Building2 size={28} /> Misi
                         </h3>
-                        <ul className="text-gray-700 leading-relaxed text-base md:text-lg list-disc pl-5 space-y-3 relative z-10">
-                            <li>
-                                Mengembangkan program pemberdayaan masyarakat
-                                yang berfokus pada peningkatan keterampilan,
-                                kesejahteraan ekonomi, dan pendidikan.
-                            </li>
-                            <li>
-                                Mendorong inovasi dan pengembangan teknologi
-                                yang ramah lingkungan untuk mendukung
-                                pembangunan berkelanjutan.
-                            </li>
-                            <li>
-                                Menjadi mitra strategis bagi pemerintah, lembaga
-                                swadaya masyarakat, dan sektor bisnis dalam
-                                mengatasi berbagai tantangan pembangunan.
-                            </li>
+                        <ul className="relative z-10 list-disc space-y-3 pl-5 text-base leading-relaxed text-gray-700 md:text-lg">
+                            {(site.mission ?? '')
+                                .split('\n')
+                                .filter((item) => item.trim() !== '')
+                                .map((item, index) => (
+                                    <li key={index}>{item}</li>
+                                ))}
                         </ul>
                     </div>
                 </div>
@@ -387,15 +438,17 @@ export default function Landing() {
                 <div className="container mx-auto px-6 md:px-12">
                     <div
                         ref={programHeaderRef}
-                        className={`flex flex-col md:flex-row justify-between items-end mb-12 ${
-                            programHeaderVisible ? "animate-fade-up" : "opacity-0"
+                        className={`mb-12 flex flex-col items-end justify-between md:flex-row ${
+                            programHeaderVisible
+                                ? 'animate-fade-up'
+                                : 'opacity-0'
                         }`}
                     >
                         <div>
-                            <span className="text-[#9c8e4d] font-bold tracking-wider uppercase text-sm mb-2 block">
+                            <span className="mb-2 block text-sm font-bold tracking-wider text-[#9c8e4d] uppercase">
                                 Apa Yang Kami Lakukan
                             </span>
-                            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 max-w-lg leading-tight">
+                            <h2 className="max-w-lg text-3xl leading-tight font-bold text-gray-900 md:text-5xl">
                                 Program Utama Pemberdayaan Masyarakat
                             </h2>
                         </div>
@@ -403,68 +456,46 @@ export default function Landing() {
 
                     <div
                         ref={programRef}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                        className="grid grid-cols-1 gap-8 md:grid-cols-2"
                     >
-                        {[
-                            {
-                                img: "/images/agriculture.webp",
-                                alt: "Agriculture",
-                                title: "Program Agriculture",
-                                desc: "Mendorong ketahanan pangan melalui peningkatan produktivitas dan kemandirian petani secara berkelanjutan.",
-                                href: "/program/agriculture",
-                            },
-                            {
-                                img: "/images/agroforestry.webp",
-                                alt: "Agroforestry",
-                                title: "Agroforestry dan Perkebunan",
-                                desc: "Meningkatkan hasil pertanian melalui integrasi tanaman hutan dan perkebunan untuk meningkatkan pendapatan sekaligus menjaga kelestarian lingkungan.",
-                                href: "/program/agroforestry",
-                            },
-                            {
-                                img: "/images/peternakan.webp",
-                                alt: "Peternakan",
-                                title: "Program Peternakan",
-                                desc: "Mendorong peternak berdaya melalui penguatan modal usaha dan akses pasar yang lebih luas.",
-                                href: "/program/peternakan",
-                            },
-                            {
-                                img: "/images/umkm.webp",
-                                alt: "UMKM",
-                                title: "UMKM Bangkit",
-                                desc: "Hadirkan akses pembiayaan tanpa riba untuk mendorong pertumbuhan usaha kecil yang berdaya.",
-                                href: "/program/umkm",
-                            },
-                        ].map((p, i) => (
+                        {programs.map((program, i) => (
                             <div
-                                key={p.href}
-                                className={`bg-white rounded-2xl overflow-hidden shadow-md flex flex-col sm:flex-row border border-gray-100 group hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ${
-                                    programVisible ? "animate-fade-up" : "opacity-0"
+                                key={program.id}
+                                className={`group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-md transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl sm:flex-row ${
+                                    programVisible
+                                        ? 'animate-fade-up'
+                                        : 'opacity-0'
                                 }`}
                                 style={{
-                                    animationDelay: programVisible ? `${i * 0.15}s` : "0s",
+                                    animationDelay: programVisible
+                                        ? `${i * 0.15}s`
+                                        : '0s',
                                 }}
                             >
-                                <div className="w-full sm:w-1/2 h-48 sm:h-auto overflow-hidden">
+                                <div className="h-48 w-full overflow-hidden sm:h-auto sm:w-1/2">
                                     <img
-                                        src={p.img}
-                                        alt={p.alt}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        src={
+                                            program.hero_image_url ??
+                                            '/images/agriculture.webp'
+                                        }
+                                        alt={program.title}
+                                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     />
                                 </div>
-                                <div className="p-6 flex flex-col justify-between w-full sm:w-1/2">
+                                <div className="flex w-full flex-col justify-between p-6 sm:w-1/2">
                                     <div>
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                            {p.title}
+                                        <h3 className="mb-2 text-xl font-bold text-gray-900">
+                                            {program.title}
                                         </h3>
-                                        <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                                            {p.desc}
+                                        <p className="mb-4 text-sm leading-relaxed text-gray-600">
+                                            {program.short_description ?? ''}
                                         </p>
                                     </div>
                                     <Link
-                                        href={p.href}
-                                        className="inline-flex items-center gap-2 text-[#4b552a] font-semibold text-sm hover:underline mt-2 w-max group/link"
+                                        href={`/program/${program.slug}`}
+                                        className="group/link mt-2 inline-flex w-max items-center gap-2 text-sm font-semibold text-[#4b552a] hover:underline"
                                     >
-                                        Selengkapnya{" "}
+                                        Selengkapnya{' '}
                                         <ArrowRight
                                             size={16}
                                             className="transition-transform duration-300 group-hover/link:translate-x-1"
@@ -478,13 +509,16 @@ export default function Landing() {
             </section>
 
             {/* 7. MAP SECTION */}
-            <section className="container mx-auto px-6 md:px-12 py-24 text-center">
-                <h2 className="text-3xl md:text-4xl font-bold text-[#4b552a] mb-8">
+            <section className="container mx-auto px-6 py-24 text-center md:px-12">
+                <h2 className="mb-8 text-3xl font-bold text-[#4b552a] md:text-4xl">
                     Temukan Kami di
                 </h2>
-                <div className="w-full h-[300px] md:h-[400px] bg-gray-200 rounded-2xl overflow-hidden shadow-md relative">
+                <div className="relative h-[300px] w-full overflow-hidden rounded-2xl bg-gray-200 shadow-md md:h-[400px]">
                     <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.307548570149!2d112.67889967357418!3d-7.431179073205722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7e132a4632891%3A0x4058849ad5fd97eb!2sYatim%20Mandiri%20Sidoarjo%3A%20Lembaga%20Amil%20Zakat%20Nasional!5e0!3m2!1sid!2sid!4v1793240614969!5m2!1sid!2sid"
+                        src={
+                            site.maps_embed_url ??
+                            'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.307548570149!2d112.67889967357418!3d-7.431179073205722!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7e132a4632891%3A0x4058849ad5fd97eb!2sYatim%20Mandiri%20Sidoarjo%3A%20Lembaga%20Amil%20Zakat%20Nasional!5e0!3m2!1sid!2sid!4v1793240614969!5m2!1sid!2sid'
+                        }
                         width="100%"
                         height="100%"
                         style={{ border: 0 }}
@@ -499,18 +533,18 @@ export default function Landing() {
             {/* 8. TESTIMONI */}
             <section
                 ref={testiRef}
-                className="container mx-auto px-6 md:px-12 pb-24 text-center"
+                className="container mx-auto px-6 pb-24 text-center md:px-12"
             >
                 <div
-                    className={`inline-block bg-[#9c8e4d] text-white px-4 py-1 rounded-full text-sm font-semibold mb-4 ${
-                        testiVisible ? "animate-fade-up" : "opacity-0"
+                    className={`mb-4 inline-block rounded-full bg-[#9c8e4d] px-4 py-1 text-sm font-semibold text-white ${
+                        testiVisible ? 'animate-fade-up' : 'opacity-0'
                     }`}
                 >
                     Testimoni Penerima Manfaat
                 </div>
                 <h2
-                    className={`text-3xl md:text-5xl font-bold text-[#4b552a] mb-4 leading-tight ${
-                        testiVisible ? "animate-fade-up delay-100" : "opacity-0"
+                    className={`mb-4 text-3xl leading-tight font-bold text-[#4b552a] md:text-5xl ${
+                        testiVisible ? 'animate-fade-up delay-100' : 'opacity-0'
                     }`}
                 >
                     Kata Penerima Manfaat Tentang
@@ -518,60 +552,54 @@ export default function Landing() {
                     Program Loka Berdaya Amerta
                 </h2>
                 <p
-                    className={`text-gray-600 mb-16 max-w-2xl mx-auto ${
-                        testiVisible ? "animate-fade-up delay-200" : "opacity-0"
+                    className={`mx-auto mb-16 max-w-2xl text-gray-600 ${
+                        testiVisible ? 'animate-fade-up delay-200' : 'opacity-0'
                     }`}
                 >
                     Cerita nyata dari peserta, relawan, dan masyarakat yang
                     telah merasakan dampak langsung dari program pemberdayaan.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-                    {[
-                        {
-                            quote: '"Saya sangat merasakan dampak dari program pemberdayaan dari Loka Berdaya Amerta. Terimakasih LBA"',
-                            name: "Pak Duwi",
-                            role: "Petani",
-                        },
-                        {
-                            quote: '"Melalui program Gen Mandiri saya menjadi pemuda yang lebih melek akan potensi diri dan potensi lingkungan untuk bisnis"',
-                            name: "Mas Abdul",
-                            role: "Alumni Gen Mandiri",
-                        },
-                        {
-                            quote: '"Terimakasih LBA, dengan program kesejahteraan perempuan, Kami para perempuan bisa tetap berkarya"',
-                            name: "Ibu Setiani",
-                            role: "PM Bunda Bisa",
-                        },
-                    ].map((t, i) => (
+                <div className="grid grid-cols-1 gap-8 text-left md:grid-cols-3">
+                    {testimonials.map((testimonial, i) => (
                         <div
-                            key={t.name}
-                            className={`bg-white p-8 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-between hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 relative overflow-hidden ${
-                                testiVisible ? "animate-fade-up" : "opacity-0"
+                            key={testimonial.id}
+                            className={`relative flex flex-col justify-between overflow-hidden rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl ${
+                                testiVisible ? 'animate-fade-up' : 'opacity-0'
                             }`}
                             style={{
-                                animationDelay: testiVisible ? `${0.3 + i * 0.15}s` : "0s",
+                                animationDelay: testiVisible
+                                    ? `${0.3 + i * 0.15}s`
+                                    : '0s',
                             }}
                         >
-                            <div className="absolute top-0 right-0 w-20 h-20 bg-[#f7ffda] rounded-bl-full -mr-4 -mt-4"></div>
-                            <div className="mb-8 relative z-10">
-                                <span className="text-6xl text-[#4b552a] absolute -top-6 -left-2 z-0 font-serif opacity-20">
+                            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-20 w-20 rounded-bl-full bg-[#f7ffda]"></div>
+                            <div className="relative z-10 mb-8">
+                                <span className="absolute -top-6 -left-2 z-0 font-serif text-6xl text-[#4b552a] opacity-20">
                                     "
                                 </span>
-                                <p className="text-gray-700 relative z-10 text-lg leading-relaxed italic">
-                                    {t.quote}
+                                <p className="relative z-10 text-lg leading-relaxed text-gray-700 italic">
+                                    {testimonial.quote}
                                 </p>
                             </div>
-                            <div className="flex items-center gap-4 mt-auto">
-                                <div className="w-14 h-14 bg-[#eff5da] rounded-full flex items-center justify-center text-[#4b552a]">
-                                    <User size={28} />
+                            <div className="mt-auto flex items-center gap-4">
+                                <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-[#eff5da] text-[#4b552a]">
+                                    {testimonial.photo_url ? (
+                                        <img
+                                            src={testimonial.photo_url}
+                                            alt={testimonial.name}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <User size={28} />
+                                    )}
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-[#4b552a] text-lg">
-                                        {t.name}
+                                    <h4 className="text-lg font-bold text-[#4b552a]">
+                                        {testimonial.name}
                                     </h4>
-                                    <p className="text-sm text-gray-500 font-medium">
-                                        {t.role}
+                                    <p className="text-sm font-medium text-gray-500">
+                                        {testimonial.role ?? ''}
                                     </p>
                                 </div>
                             </div>
@@ -583,34 +611,49 @@ export default function Landing() {
             {/* 9. MITRA KOLABORATOR */}
             <section
                 ref={mitraRef}
-                className="container mx-auto px-6 md:px-12 pb-24"
+                className="container mx-auto px-6 pb-24 md:px-12"
             >
                 <div
-                    className={`bg-[#f7ffda] p-8 md:p-14 rounded-[3rem] shadow-sm border border-[#dce5c0] flex flex-col md:flex-row items-center justify-between gap-12 ${
-                        mitraVisible ? "animate-fade-up" : "opacity-0"
+                    className={`flex flex-col items-center justify-between gap-12 rounded-[3rem] border border-[#dce5c0] bg-[#f7ffda] p-8 shadow-sm md:flex-row md:p-14 ${
+                        mitraVisible ? 'animate-fade-up' : 'opacity-0'
                     }`}
                 >
                     <div className="w-full md:w-1/3">
-                        <h2 className="text-2xl md:text-3xl font-bold text-[#4b552a] mb-4">
+                        <h2 className="mb-4 text-2xl font-bold text-[#4b552a] md:text-3xl">
                             Mitra Kolaborator
                         </h2>
-                        <p className="text-gray-600 leading-relaxed text-sm md:text-base">
+                        <p className="text-sm leading-relaxed text-gray-600 md:text-base">
                             Loka Berdaya Amerta telah berkolaborasi dengan
                             berbagai mitra strategis dalam melaksanakan program
                             pemberdayaan ekonomi dan sosial.
                         </p>
                     </div>
 
-                    <div className="w-full md:w-2/3 flex flex-wrap items-center justify-center md:justify-end gap-6 md:gap-8">
-                        {[1, 2, 3].map((n) => (
-                            <div
-                                key={n}
-                                className="flex items-center justify-center h-16 md:h-20 w-32 md:w-40 bg-white/60 backdrop-blur-sm border border-white rounded-xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                    <div className="flex w-full flex-wrap items-center justify-center gap-6 md:w-2/3 md:justify-end md:gap-8">
+                        {partners.map((partner) => (
+                            <a
+                                key={partner.id}
+                                href={partner.url ?? undefined}
+                                target={partner.url ? '_blank' : undefined}
+                                rel={
+                                    partner.url
+                                        ? 'noopener noreferrer'
+                                        : undefined
+                                }
+                                className="flex h-16 w-32 items-center justify-center overflow-hidden rounded-xl border border-white bg-white/60 p-3 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg md:h-20 md:w-40"
                             >
-                                <span className="text-[#4b552a] font-bold text-xs md:text-sm">
-                                    Logo Mitra {n}
-                                </span>
-                            </div>
+                                {partner.logo_url ? (
+                                    <img
+                                        src={partner.logo_url}
+                                        alt={partner.name}
+                                        className="max-h-full max-w-full object-contain"
+                                    />
+                                ) : (
+                                    <span className="text-center text-xs font-bold text-[#4b552a] md:text-sm">
+                                        {partner.name}
+                                    </span>
+                                )}
+                            </a>
                         ))}
                     </div>
                 </div>
@@ -619,40 +662,62 @@ export default function Landing() {
             {/* 10. HUBUNGI KAMI SECTION */}
             <section
                 ref={kontakRef}
-                className="container mx-auto px-6 md:px-12 pb-24"
+                className="container mx-auto px-6 pb-24 md:px-12"
             >
                 <div
-                    className={`grid grid-cols-1 md:grid-cols-2 gap-0 rounded-[3rem] overflow-hidden shadow-2xl bg-white ${
-                        kontakVisible ? "animate-fade-up" : "opacity-0"
+                    className={`grid grid-cols-1 gap-0 overflow-hidden rounded-[3rem] bg-white shadow-2xl md:grid-cols-2 ${
+                        kontakVisible ? 'animate-fade-up' : 'opacity-0'
                     }`}
                 >
-                    <div className="bg-[#4b552a] p-8 md:p-16 text-white relative">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-10 -mt-10"></div>
-                        <h2 className="text-3xl md:text-4xl font-bold mb-2">
+                    <div className="relative bg-[#4b552a] p-8 text-white md:p-16">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-bl-full bg-white/5"></div>
+                        <h2 className="mb-2 text-3xl font-bold md:text-4xl">
                             Hubungi Kami
                         </h2>
-                        <p className="text-[#f7ffda]/80 mb-10">
+                        <p className="mb-10 text-[#f7ffda]/80">
                             Punya pertanyaan khusus untuk kami?
                         </p>
 
                         <form
                             className="space-y-6"
-                            onSubmit={(e) => e.preventDefault()}
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                contactForm.post('/kontak', {
+                                    preserveScroll: true,
+                                    onSuccess: () => contactForm.reset(),
+                                });
+                            }}
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <input
                                         type="text"
+                                        name="name"
+                                        value={contactForm.data.name}
+                                        onChange={(event) =>
+                                            contactForm.setData(
+                                                'name',
+                                                event.target.value,
+                                            )
+                                        }
                                         placeholder="Nama *"
-                                        className="w-full bg-transparent border-b border-white/30 px-0 py-3 text-white placeholder-white/60 focus:outline-none focus:border-[#f7ffda] transition rounded-none"
+                                        className="w-full rounded-none border-b border-white/30 bg-transparent px-0 py-3 text-white placeholder-white/60 transition focus:border-[#f7ffda] focus:outline-none"
                                         required
                                     />
                                 </div>
                                 <div>
                                     <input
                                         type="email"
+                                        name="email"
+                                        value={contactForm.data.email}
+                                        onChange={(event) =>
+                                            contactForm.setData(
+                                                'email',
+                                                event.target.value,
+                                            )
+                                        }
                                         placeholder="Email *"
-                                        className="w-full bg-transparent border-b border-white/30 px-0 py-3 text-white placeholder-white/60 focus:outline-none focus:border-[#f7ffda] transition rounded-none"
+                                        className="w-full rounded-none border-b border-white/30 bg-transparent px-0 py-3 text-white placeholder-white/60 transition focus:border-[#f7ffda] focus:outline-none"
                                         required
                                     />
                                 </div>
@@ -660,82 +725,110 @@ export default function Landing() {
                             <div>
                                 <input
                                     type="tel"
+                                    name="phone"
+                                    value={contactForm.data.phone}
+                                    onChange={(event) =>
+                                        contactForm.setData(
+                                            'phone',
+                                            event.target.value,
+                                        )
+                                    }
                                     placeholder="No. Telepon"
-                                    className="w-full bg-transparent border-b border-white/30 px-0 py-3 text-white placeholder-white/60 focus:outline-none focus:border-[#f7ffda] transition rounded-none"
+                                    className="w-full rounded-none border-b border-white/30 bg-transparent px-0 py-3 text-white placeholder-white/60 transition focus:border-[#f7ffda] focus:outline-none"
                                 />
                             </div>
                             <div>
                                 <input
                                     type="text"
+                                    name="subject"
+                                    value={contactForm.data.subject}
+                                    onChange={(event) =>
+                                        contactForm.setData(
+                                            'subject',
+                                            event.target.value,
+                                        )
+                                    }
                                     placeholder="Subject"
-                                    className="w-full bg-transparent border-b border-white/30 px-0 py-3 text-white placeholder-white/60 focus:outline-none focus:border-[#f7ffda] transition rounded-none"
+                                    className="w-full rounded-none border-b border-white/30 bg-transparent px-0 py-3 text-white placeholder-white/60 transition focus:border-[#f7ffda] focus:outline-none"
                                 />
                             </div>
                             <div>
                                 <textarea
                                     rows={4}
+                                    name="message"
+                                    value={contactForm.data.message}
+                                    onChange={(event) =>
+                                        contactForm.setData(
+                                            'message',
+                                            event.target.value,
+                                        )
+                                    }
                                     placeholder="Pesan"
-                                    className="w-full bg-transparent border-b border-white/30 px-0 py-3 text-white placeholder-white/60 focus:outline-none focus:border-[#f7ffda] transition resize-none rounded-none"
+                                    className="w-full resize-none rounded-none border-b border-white/30 bg-transparent px-0 py-3 text-white placeholder-white/60 transition focus:border-[#f7ffda] focus:outline-none"
+                                    required
                                 ></textarea>
                             </div>
                             <button
                                 type="submit"
-                                className="mt-4 flex items-center gap-2 bg-[#f7ffda] text-[#4b552a] px-8 py-3 rounded-full font-bold hover:bg-white hover:gap-3 transition-all duration-300 w-max animate-pulse-ring"
+                                disabled={contactForm.processing}
+                                className="animate-pulse-ring mt-4 flex w-max items-center gap-2 rounded-full bg-[#f7ffda] px-8 py-3 font-bold text-[#4b552a] transition-all duration-300 hover:gap-3 hover:bg-white disabled:opacity-60"
                             >
-                                <Send size={18} /> KIRIM PESAN
+                                <Send size={18} />
+                                {contactForm.processing
+                                    ? 'MENGIRIM...'
+                                    : 'KIRIM PESAN'}
                             </button>
                         </form>
                     </div>
 
-                    <div className="bg-[#fcfcfc] p-8 md:p-16 flex flex-col justify-center">
-                        <span className="text-[#9c8e4d] font-semibold tracking-wider uppercase mb-2 block">
+                    <div className="flex flex-col justify-center bg-[#fcfcfc] p-8 md:p-16">
+                        <span className="mb-2 block font-semibold tracking-wider text-[#9c8e4d] uppercase">
                             Lebih Lanjut
                         </span>
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10 leading-tight">
+                        <h2 className="mb-10 text-3xl leading-tight font-bold text-gray-900 md:text-4xl">
                             Kontak Kami
                         </h2>
 
                         <div className="space-y-8">
-                            <div className="flex items-start gap-5 group">
-                                <div className="bg-[#eff5da] p-3 rounded-2xl text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                            <div className="group flex items-start gap-5">
+                                <div className="rounded-2xl bg-[#eff5da] p-3 text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                                     <Phone size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">
+                                    <h4 className="mb-1 font-bold text-gray-900">
                                         Telepon / WhatsApp
                                     </h4>
                                     <p className="text-gray-600">
-                                        081 330003450
+                                        {site.phone ?? '081 330003450'}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-5 group">
-                                <div className="bg-[#eff5da] p-3 rounded-2xl text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                            <div className="group flex items-start gap-5">
+                                <div className="rounded-2xl bg-[#eff5da] p-3 text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                                     <Mail size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">
+                                    <h4 className="mb-1 font-bold text-gray-900">
                                         Email
                                     </h4>
                                     <p className="text-gray-600">
-                                        info@lokaberdaya.com
+                                        {site.email ?? 'info@lokaberdaya.com'}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-5 group">
-                                <div className="bg-[#eff5da] p-3 rounded-2xl text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                            <div className="group flex items-start gap-5">
+                                <div className="rounded-2xl bg-[#eff5da] p-3 text-[#4b552a] shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
                                     <MapPin size={24} />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-gray-900 mb-1">
+                                    <h4 className="mb-1 font-bold text-gray-900">
                                         Alamat Kantor
                                     </h4>
-                                    <p className="text-gray-600 leading-relaxed">
-                                        Jl. Sarirogo No. 1, Sari Rogo, Kec.
-                                        Sidoarjo, Kabupaten Sidoarjo, Jawa Timur
-                                        61234
+                                    <p className="leading-relaxed text-gray-600">
+                                        {site.address ??
+                                            'Jl. Sarirogo No. 1, Sari Rogo, Kec. Sidoarjo, Kabupaten Sidoarjo, Jawa Timur 61234'}
                                     </p>
                                 </div>
                             </div>
