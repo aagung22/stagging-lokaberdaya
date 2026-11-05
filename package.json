@@ -48,6 +48,7 @@
         "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0"
     },
     "devDependencies": {
+        "@babel/core": "^7.29.13",
         "@laravel/vite-plugin-wayfinder": "^0.1.11",
         "@rolldown/plugin-babel": "^0.2.4",
         "@types/node": "^26.6.5",
