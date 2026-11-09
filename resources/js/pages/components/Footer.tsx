@@ -1,6 +1,6 @@
 // resources/js/components/Footer.tsx
 import { useEffect, useRef, useState } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 import { MapPin, Phone, Mail } from 'lucide-react';
 
 const footerStyles = `
@@ -29,10 +29,11 @@ const footerStyles = `
 .footer-visible .footer-animate--right { animation-name: footerSlideRight; }
 
 .footer-animate--delay-1 { animation-delay: 0.1s; }
-.footer-animate--delay-2 { animation-delay: 0.25s; }
-.footer-animate--delay-3 { animation-delay: 0.4s; }
-.footer-animate--delay-4 { animation-delay: 0.55s; }
-.footer-animate--delay-5 { animation-delay: 0.7s; }
+.footer-animate--delay-2 { animation-delay: 0.2s; }
+.footer-animate--delay-3 { animation-delay: 0.3s; }
+.footer-animate--delay-4 { animation-delay: 0.4s; }
+.footer-animate--delay-5 { animation-delay: 0.5s; }
+.footer-animate--delay-6 { animation-delay: 0.6s; }
 
 .footer-contact-item {
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
@@ -56,6 +57,7 @@ const footerStyles = `
 
 .footer-link {
     position: relative;
+    display: inline-block;
     transition: color 0.3s ease;
 }
 .footer-link::after {
@@ -78,6 +80,8 @@ const footerStyles = `
     }
 }
 `;
+
+type NavItem = { label: string; href: string };
 
 export default function Footer() {
     const footerRef = useRef<HTMLElement>(null);
@@ -120,11 +124,32 @@ export default function Footer() {
         },
     ];
 
+    // Navigasi Utama
+    const navigationLinks: NavItem[] = [
+        { label: 'Beranda', href: '/' },
+        { label: 'Tentang Kami', href: '/tentang' },
+        { label: 'Blog & Artikel', href: '/blog' },
+        { label: 'Kontak', href: '/kontak' },
+    ];
+
+    // Diubah dari "Link Cepat" menjadi "Program Kami"
+    const programLinks: NavItem[] = [
+        { label: 'Pertanian (Agriculture)', href: '/program/agriculture' },
+        { label: 'Peternakan', href: '/program/peternakan' },
+        { label: 'Perkebunan & Agroforestry', href: '/program/agroforestry' },
+        { label: 'UMKM Bangkit', href: '/program/umkm' },
+    ];
+
     const siteName = site.site_name ?? 'Loka Berdaya Amerta';
+
+    // Helper untuk mencegah error class CSS jika index terlalu besar
+    const getDelayClass = (index: number) => {
+        const safeIndex = (index % 5) + 1;
+        return `footer-animate--delay-${safeIndex}`;
+    };
 
     return (
         <>
-            {/* Style animasi — di-render sekali, tidak perlu file tambahan */}
             <style>{footerStyles}</style>
 
             <footer
@@ -134,40 +159,89 @@ export default function Footer() {
                 }`}
             >
                 <div className="container mx-auto px-6 md:px-12">
-                    <div className="mb-12 flex flex-col justify-between gap-12 md:flex-row">
-                        {/* Kiri: Logo & Deskripsi */}
-                        <div className="w-full md:w-1/2">
+                    {/* Grid diubah agar proporsinya lebih rapi (4 : 2 : 2 : 3) */}
+                    <div className="mb-12 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-12">
+                        
+                        {/* Kolom 1: Logo & Deskripsi (Lebih Lebar) */}
+                        <div className="lg:col-span-4">
                             <div className="flex items-center">
                                 <img
                                     src={site.logo ?? '/images/logo lba.webp'}
                                     alt={`Logo ${siteName}`}
-                                    className="footer-logo footer-animate footer-animate--left h-16 w-auto object-contain md:h-28"
+                                    className="footer-logo footer-animate footer-animate--left h-16 w-auto object-contain md:h-24"
                                     onError={(e) => {
                                         e.currentTarget.style.display = 'none';
                                     }}
                                 />
                             </div>
 
-                            <p className="footer-animate footer-animate--up footer-animate--delay-1 -mt-2 mb-6 max-w-md leading-relaxed text-gray-300 md:-mt-4">
+                            <p className="footer-animate footer-animate--up footer-animate--delay-1 mt-4 mb-6 max-w-sm leading-relaxed text-gray-300">
                                 {site.footer_description ??
                                     'Loka Berdaya Amerta adalah lembaga pionir dalam pemberdayaan masyarakat yang fokus pada peningkatan keterampilan, ekonomi, pendidikan, dan keberlanjutan lingkungan melalui kolaborasi lintas sektor.'}
                             </p>
                         </div>
 
-                        {/* Kanan: Kontak */}
-                        <div className="flex w-full flex-col gap-4 md:w-1/3">
+                        {/* Kolom 2: Navigasi */}
+                        <div className="lg:col-span-2">
+                            <h3 className="footer-animate footer-animate--up footer-animate--delay-2 mb-5 text-lg font-semibold text-[#f7ffda]">
+                                Navigasi
+                            </h3>
+                            <ul className="space-y-3">
+                                {navigationLinks.map((item, i) => (
+                                    <li
+                                        key={item.href}
+                                        className={`footer-animate footer-animate--up ${getDelayClass(i + 2)}`}
+                                    >
+                                        <Link
+                                            href={item.href}
+                                            className="footer-link text-gray-300 hover:text-white"
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Kolom 3: Program Kami */}
+                        <div className="lg:col-span-3">
+                            <h3 className="footer-animate footer-animate--up footer-animate--delay-3 mb-5 text-lg font-semibold text-[#f7ffda]">
+                                Program Kami
+                            </h3>
+                            <ul className="space-y-3">
+                                {programLinks.map((item, i) => (
+                                    <li
+                                        key={item.href}
+                                        className={`footer-animate footer-animate--up ${getDelayClass(i + 3)}`}
+                                    >
+                                        <Link
+                                            href={item.href}
+                                            className="footer-link text-gray-300 hover:text-white"
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Kolom 4: Kontak */}
+                        <div className="flex flex-col gap-4 lg:col-span-3">
+                            <h3 className="footer-animate footer-animate--up footer-animate--delay-3 mb-1 text-lg font-semibold text-[#f7ffda]">
+                                Kontak
+                            </h3>
                             {contacts.map((item, i) => {
                                 const Icon = item.icon;
                                 return (
                                     <div
                                         key={i}
-                                        className={`footer-contact-item footer-animate footer-animate--right footer-animate--delay-${i + 2} flex items-start gap-3`}
+                                        className={`footer-contact-item footer-animate footer-animate--right ${getDelayClass(i + 4)} flex items-start gap-3`}
                                     >
                                         <Icon
-                                            className="footer-icon mt-1 text-[#f7ffda]"
+                                            className="footer-icon mt-1 shrink-0 text-[#f7ffda]"
                                             size={20}
                                         />
-                                        <p className="text-gray-300">
+                                        <p className="text-gray-300 text-sm leading-relaxed">
                                             {item.text}
                                         </p>
                                     </div>
@@ -177,24 +251,23 @@ export default function Footer() {
                     </div>
 
                     {/* Garis Bawah & Copyright */}
-                    <div className="footer-animate footer-animate--up footer-animate--delay-5 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 md:flex-row">
+                    <div className="footer-animate footer-animate--up footer-animate--delay-6 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-8 md:flex-row">
                         <p className="text-sm text-gray-400">
-                            © {new Date().getFullYear()} {siteName}. All rights
-                            reserved.
+                            © {new Date().getFullYear()} {siteName}. All rights reserved.
                         </p>
                         <div className="flex gap-4 text-sm text-gray-400">
-                            <a
-                                href="#"
+                            <Link
+                                href="/privacy-policy"
                                 className="footer-link hover:text-white"
                             >
                                 Privacy Policy
-                            </a>
-                            <a
-                                href="#"
+                            </Link>
+                            <Link
+                                href="/terms-of-service"
                                 className="footer-link hover:text-white"
                             >
                                 Terms of Service
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>
